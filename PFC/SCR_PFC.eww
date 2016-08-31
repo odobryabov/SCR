@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="iso-8859-1"?>
+
+<workspace>
+  <project>
+    <path>$WS_DIR$\Project\Discover\Discover.ewp</path>
+  </project>
+  <project>
+    <path>$WS_DIR$\Project\Project_template\project.ewp</path>
+  </project>
+  <project>
+    <path>$WS_DIR$\Project\WavesGenerator\WavesGenerator.ewp</path>
+  </project>
+  <batchBuild/>
+</workspace>
+
+
