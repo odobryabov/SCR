@@ -198,7 +198,7 @@ typedef enum
 
   ADC_AnalogWatchdogSelection_Vrefint    = ((uint8_t)0x1C), /*!< AWD affected to Internal Vref Channel  */
   ADC_AnalogWatchdogSelection_TempSensor = ((uint8_t)0x1D)  /*!< AWD affected to Temperature Sensor Channel */
-}ADC_AnalogWatchdogSelection_TypeDef;
+} ADC_AnalogWatchdogSelection_TypeDef;
 
 /**
   * @brief  ADC  interrupts definition

@@ -52,8 +52,8 @@
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>0</CreateHexFile>
-          <DebugInformation>0</DebugInformation>
-          <BrowseInformation>0</BrowseInformation>
+          <DebugInformation>1</DebugInformation>
+          <BrowseInformation>1</BrowseInformation>
           <ListingPath></ListingPath>
           <HexFormatSelection>1</HexFormatSelection>
           <Merge32K>0</Merge32K>
@@ -426,6 +426,11 @@
               <FileName>periph.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\periph.c</FilePath>
+            </File>
+            <File>
+              <FileName>pfc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\pfc.c</FilePath>
             </File>
           </Files>
         </Group>

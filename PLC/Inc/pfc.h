@@ -18,10 +18,7 @@
 #define PFC_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm8l15x_tim1.h"
-#include "stm8l15x_tim2.h"
-#include "stm8l15x_tim3.h"
-#include "stm8l15x_dac.h"
+#include "stm32f4xx.h"
 
 /* Global types --------------------------------------------------------------*/
 /** 
@@ -51,7 +48,7 @@ typedef struct
 {
 	SCRPhase_TypeDef Phase;
 	SCRUnlockMode_TypeDef Mode;
-	GPIO_Pin_TypeDef GPIO_Pin;
+	uint16_t GPIO_Pin;
 	GPIO_TypeDef* GPIOx;
 } SCR_TypeDef;
 
@@ -63,7 +60,7 @@ typedef struct
 	uint16_t FirstImpPeriod;
 	uint16_t NextImpPeriod;
 	uint16_t SpacePeriod;
-	uint8_t NextImpNumber;
+	uint16_t NextImpNumber;
 } PFCTimers_TypeDef;
 
 /** 
@@ -80,11 +77,10 @@ typedef struct
 void PFCSCRInit(void);
 void PFCTimersInit(void);
 void PFCADCInit (void);
-uint16_t PFCGetADC(void);
+inline uint16_t PFCGetADC(void);
 inline uint16_t PFCVoltageFilter(uint16_t voltageValue);
-FlagStatus PFCStartPhase(uint16_t voltageValue, uint16_t edge);
+inline FlagStatus PFCStartPhase(uint16_t voltageValue, uint16_t edge);
 void PFCOpenGate(SCR_TypeDef* Thyristor);
-uint16_t trpFilter(uint16_t input);
 void PFC_main(void);
 void PFC_DAC_init(void);
 

@@ -1997,6 +1997,9 @@
       <name>$PROJ_DIR$\src\pfc.c</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\..\Libraries\STM8L15x_StdPeriph_Driver\src\stm8l15x_dac.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\src\stm8l15x_it.c</name>
     </file>
     <file>

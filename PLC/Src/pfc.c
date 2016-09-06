@@ -14,7 +14,6 @@
   */
 	
 /* Includes ------------------------------------------------------------------*/
-#include "stm8l15x.h"
 #include "pfc.h"
 #include <math.h>
 
@@ -39,39 +38,49 @@ void PFCSCRInit(void)
 	/* thyristor 1 */
 	PFC.SCR[0].Phase = L1_Plus;
 	PFC.SCR[0].GPIOx = GPIOE;
-	PFC.SCR[0].GPIO_Pin = GPIO_Pin_0;
+	PFC.SCR[0].GPIO_Pin = GPIO_PIN_0;
 
 	/* thyristor 2 */
 	PFC.SCR[1].Phase = L1_Minus;
 	PFC.SCR[1].GPIOx = GPIOE;
-	PFC.SCR[1].GPIO_Pin = GPIO_Pin_1;
+	PFC.SCR[1].GPIO_Pin = GPIO_PIN_1;
 
 	/* thyristor 3 */
 	PFC.SCR[2].Phase = L2_Plus;
 	PFC.SCR[2].GPIOx = GPIOE;
-	PFC.SCR[2].GPIO_Pin = GPIO_Pin_2;
+	PFC.SCR[2].GPIO_Pin = GPIO_PIN_2;
 
 	/* thyristor 4 */
 	PFC.SCR[3].Phase = L2_Minus;
 	PFC.SCR[3].GPIOx = GPIOE;
-	PFC.SCR[3].GPIO_Pin = GPIO_Pin_3;
+	PFC.SCR[3].GPIO_Pin = GPIO_PIN_3;
 
 	/* thyristor 5 */
 	PFC.SCR[4].Phase = L3_Plus;
 	PFC.SCR[4].GPIOx = GPIOE;
-	PFC.SCR[4].GPIO_Pin = GPIO_Pin_4;
+	PFC.SCR[4].GPIO_Pin = GPIO_PIN_4;
 
 	/* thyristor 6 */
 	PFC.SCR[5].Phase = L3_Minus;
 	PFC.SCR[5].GPIOx = GPIOE;
-	PFC.SCR[5].GPIO_Pin = GPIO_Pin_5;
+	PFC.SCR[5].GPIO_Pin = GPIO_PIN_5;
         
-        /* gpio and mode init */
-        for (uint8_t i = 0; i < 6; i++)
-        {
-          PFC.SCR[i].Mode = FirstImp;
-          GPIO_Init( PFC.SCR[i].GPIOx, PFC.SCR[i].GPIO_Pin, GPIO_Mode_Out_PP_High_Fast);
-        }
+	/* gpio and mode init */
+	for (uint8_t i = 0; i < 6; i++)
+	{
+		/* temp gpio handler */
+		GPIO_InitTypeDef GPIO_temp;
+		
+		PFC.SCR[i].Mode = FirstImp;
+		
+		GPIO_temp.Pin = PFC.SCR[i].GPIO_Pin;
+		GPIO_temp.Mode = GPIO_MODE_OUTPUT_PP;
+		GPIO_temp.Pull = GPIO_NOPULL;
+		GPIO_temp.Speed = GPIO_SPEED_HIGH;
+		HAL_GPIO_Init(PFC.SCR[i].GPIOx, &GPIO_temp);
+	}
+		
+		
 }
 
 /** 
@@ -82,10 +91,10 @@ void PFCSCRInit(void)
 void PFCTimersInit(void)
 {
 	/* unlock impulse periods init common structure */
-	PFC.Timers.FirstImpPeriod       = 50;
-	PFC.Timers.NextImpPeriod        = 5;
-	PFC.Timers.NextImpNumber 	= 5;
-	PFC.Timers.SpacePeriod 		= 5;
+	PFC.Timers.FirstImpPeriod   = 10000;
+	PFC.Timers.NextImpPeriod    = 1000;
+	PFC.Timers.NextImpNumber 	= 4;
+	PFC.Timers.SpacePeriod 		= 5000;
 	
 	/* Peripheral clock enable */
         CLK_PeripheralClockConfig(CLK_Peripheral_TIM1, ENABLE);
@@ -93,10 +102,10 @@ void PFCTimersInit(void)
         CLK_PeripheralClockConfig(CLK_Peripheral_TIM3, ENABLE);
         
 	/* configuration */
-        TIM1_TimeBaseInit((uint16_t)8-1,
-                       TIM1_CounterMode_Up,
-                       0xFFFF,
-                       FALSE);
+        TIM1_TimeBaseInit((uint16_t)6-1,
+                       TIM1_CounterMode_Down,
+                       1000,
+                       TRUE);
 	
         TIM2_TimeBaseInit(TIM2_Prescaler_1,
                                TIM2_CounterMode_Up, 
@@ -114,6 +123,8 @@ void PFCTimersInit(void)
         
         TIM3_ClearITPendingBit(TIM3_IT_Update);
         TIM3_ITConfig(TIM3_IT_Update, ENABLE);
+        	
+	//PFC.Timers.phaseSwitchTimer->Instance->CCMR2 = 60;  /////////////default 60 degreeses
 }
 
 /**
@@ -135,13 +146,13 @@ void PFCADCInit(void)
   - Prescaler = /1
   - sampling time 9 */
   ADC_Init(ADC1, ADC_ConversionMode_Single,ADC_Resolution_12Bit, ADC_Prescaler_2);
-  ADC_SamplingTimeConfig(ADC1, ADC_Group_SlowChannels, ADC_SamplingTime_384Cycles);
+  ADC_SamplingTimeConfig(ADC1, ADC_Group_SlowChannels, ADC_SamplingTime_192Cycles);
   /* disable SchmittTrigger for ADC_Channel_1, to save power */
   ADC_SchmittTriggerConfig(ADC1, ADC_Channel_1, DISABLE);
  /* disable DMA for ADC1 */
   ADC_DMACmd(ADC1, DISABLE);
  
-  //ADC_ITConfig(ADC1, ADC_IT_EOC, ENABLE);
+ // ADC_ITConfig(ADC1, ADC_IT_EOC, ENABLE);
   /* Enable ADC1 hannel 1 */
   ADC_Cmd(ADC1, ENABLE);
   ADC_ChannelCmd(ADC1, ADC_Channel_1, ENABLE);
@@ -186,21 +197,32 @@ uint16_t PFCVoltageFilter(uint16_t voltageValue)
 	* @retval	period
  */
 FlagStatus PFCStartPhase(uint16_t voltageValue, uint16_t edge)
-{  
-        static FlagStatus mode = RESET;
-
-        if (voltageValue < (edge - 50))
-           return mode = RESET;
-          
-        if (voltageValue > edge & !mode)
-        {
-          mode = SET;
-          return SET;
-        }
-        else
-          return RESET;
-          
+{
+        static uint16_t arrayVoltage[2];                        /* temp voltage array */
+        FlagStatus status = RESET;                              /* return value */
         
+        /* push a current value */
+	arrayVoltage[1] = voltageValue;
+        
+        /* if the current value is greater than edge AND a previous value is less 
+         * then this is a start point
+         *                       /
+         *                     *  <--arrayVoltage[1] NOW
+         *                   /
+         *    edge --------------------------
+         *                 /
+         *                * <--arrayVoltage[0] BEFORE
+         *              /
+        */
+	if (arrayVoltage[1] > edge & arrayVoltage[0] <= edge)
+          status = SET;
+	else
+          status = RESET;
+
+        /* current value becomes a previous */
+        arrayVoltage[0] = arrayVoltage[1];
+        
+        return status;
 }
 
  /** 
@@ -214,7 +236,7 @@ FlagStatus PFCStartPhase(uint16_t voltageValue, uint16_t edge)
 void PFCOpenGate(SCR_TypeDef* Thyristor)
 {
 	/* local static variables */
-	static uint8_t i = 0; /* counter for next impulses */
+	static uint16_t i = 0; /* counter for other impulses */
 	
 	/* modes switcher */
 	switch (Thyristor->Mode)
@@ -226,7 +248,7 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			/* set period */
 			TIM3_SetCounter(PFC.Timers.FirstImpPeriod);
 			/* enable timer */
-                        TIM3_Cmd(ENABLE);
+            TIM3_Cmd(ENABLE);
 			break;
 		
 		/* space between impulses */
@@ -237,14 +259,13 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			if (i++ < PFC.Timers.NextImpNumber)
 			{
 				/* set period */
-                                TIM3_SetCounter(PFC.Timers.SpacePeriod);
+                TIM3_SetCounter(PFC.Timers.SpacePeriod);
 			} else
 			{
-                          /* default settings */
-                          TIM3_Cmd(DISABLE);
-                          i = 0;
-                          Thyristor->Mode = FirstImp;
-                                
+				/* default settings */
+				i = 0;
+				Thyristor->Mode = FirstImp;
+                TIM3_Cmd(DISABLE);
 			}
 			break;
 			
@@ -258,37 +279,6 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			TIM3_SetCounter(PFC.Timers.NextImpPeriod); 
 			break;
 	}
-}
-
-/** 
-	* @brief  trapezoid area average. 
-	* @brief  First return values (windows numder) are incorrect 
-	* 				while temp array is not full of input values
-	* @param  input: input value.
-	* @param  temp: extern buffer array (window + 1 is size)
-	* @param  window: smooth width
-	* @retval output value
- */
-uint16_t trpFilter(uint16_t input)
-{
-        static uint16_t temp[3];
-	/* private variables */
-        uint16_t window = 3;
-	float sqSum = 0; /* area sum */
-	
-	/* place back an input value */
-	temp[window] = input;
-	/* push back a temp array */
-	for (uint16_t i = 0; i < window; i++)
-		temp[i] = temp[i+1];
-	
-	/* area sum calculating. */
-	/* trapezoid area equals (|a - b|*h)/2 + b*h. h = 1 */
-	for (uint16_t i = 0; i < window; i++)
-		sqSum += fabs((float)temp[i+1] - (float)temp[i]) / 2 + temp[i];
-	
-	/* return an average square */
-	return (uint16_t)(sqSum / window);
 }
 
 /** 
@@ -310,16 +300,5 @@ void PFC_main(void)
           TIM2_SetCounter(0);
           TIM2_Cmd(ENABLE);
 	}
-}
-
-void PFC_DAC_init(void)
-{
-  RI->IOSR3 |= 1<<4;
-  CLK_PeripheralClockConfig(CLK_Peripheral_DAC, ENABLE); 
- 
-  DAC_DeInit();
-
-  DAC_Init(DAC_Channel_1, DAC_Trigger_None, DAC_OutputBuffer_Enable); 
-  DAC_Cmd(DAC_Channel_1, ENABLE);
 }
 /************************ (C) COPYRIGHT ***** END OF FILE ****/

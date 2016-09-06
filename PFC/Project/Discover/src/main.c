@@ -40,6 +40,8 @@ extern bool KeyPressed;
 
 extern PFC_TypeDef PFC;
 
+uint16_t ADC_val;
+
 /**
   * @brief main entry point.
   * @par Parameters None
@@ -50,35 +52,54 @@ void main(void)
 { 
   /* system clocking config */
   CLK_SYSCLKDivConfig(CLK_SYSCLKDiv_1);
- 
+  uint16_t i = 0xFFFF;
   PFCSCRInit();
   PFCTimersInit();
   PFCADCInit();
+  //PFC_DAC_init();
 	 	
   GPIO_Init( GPIOC, GPIO_Pin_1, GPIO_Mode_In_FL_No_IT);
-  
-  GPIO_Init( GPIOE, GPIO_Pin_7, GPIO_Mode_Out_PP_High_Fast);
-  GPIO_Init( GPIOC, GPIO_Pin_7, GPIO_Mode_Out_PP_High_Fast);
-  
-  GPIO_WriteBit(GPIOC, GPIO_Pin_7, RESET);
-  GPIO_WriteBit(GPIOE, GPIO_Pin_7, RESET);
-  
-  GPIO_WriteBit(GPIOE, GPIO_Pin_0, RESET);
-  
-  asm("rim");
-  /* enable global interrupts */
+//  
+//  GPIO_Init( GPIOE, GPIO_Pin_7, GPIO_Mode_Out_PP_High_Fast);
+//  GPIO_Init( GPIOC, GPIO_Pin_7, GPIO_Mode_Out_PP_High_Fast);
+//  
+//  //GPIO_Init( GPIOA, GPIO_Pin_5, GPIO_Mode_In_PU_No_IT);
+//  
+//  GPIO_WriteBit(GPIOC, GPIO_Pin_7, RESET);
+//  GPIO_WriteBit(GPIOE, GPIO_Pin_7, RESET);
+//  
+//  GPIO_WriteBit(GPIOE, GPIO_Pin_0, RESET);
 
+  //asm("rim");
+  /* enable global interrupts */
+  __enable_interrupt();
   while (1)
   {
-    //if (!GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1))
-    if (PFCStartPhase(PFCVoltageFilter(PFCGetADC())))
+    
+    //ADC_val = PFCGetADC();
+    //DAC_SetChannel1Data(DAC_Align_12b_R, ADC_val);
+    if (!GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1))
+      i--;
+    if (PFCStartPhase(PFCGetADC(), 2000))
     {
-                        PFCOpenGate(&PFC.SCR[0]);
-    } else 
-    {
-      //GPIO_WriteBit(GPIOE, GPIO_Pin_7, RESET);
-
+                        //PFCOpenGate(&PFC.SCR[0]);
+          TIM1_SetCounter(i);
+          TIM1_Cmd(ENABLE);
+                        //GPIO_WriteBit(GPIOE, GPIO_Pin_0, SET);
     }
+    else
+    {
+      //GPIO_WriteBit(GPIOE, GPIO_Pin_0, RESET);
+    }
+//  if (PFCGetADC()>2000)
+//      GPIO_WriteBit(GPIOE, GPIO_Pin_0, SET);
+//    else
+//      GPIO_WriteBit(GPIOE, GPIO_Pin_0, RESET);
+// else 
+//    {
+//      //GPIO_WriteBit(GPIOE, GPIO_Pin_7, RESET);
+//
+//    }
 //    if (PFCStartPhase(PFCVoltageFilter(PFCGetADC())))
 //	{
 //          TIM1_ClearITPendingBit(TIM1_IT_Update);

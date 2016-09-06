@@ -36,6 +36,8 @@ extern uint8_t t_bar[2];
 extern PFC_TypeDef PFC;
 extern SCRPhase_TypeDef SCRActive;
 
+//uint16_t ADC_val;
+
 /** @addtogroup IT_Functions
   * @{
   */
@@ -430,8 +432,16 @@ INTERRUPT_HANDLER(ADC1_COMP_IRQHandler,18)
 /* In order to detect unexpected events during development,
    it is recommended to set a breakpoint on the following instruction.
 */
-  while (1);
-
+//  GPIO_WriteBit(GPIOE, GPIO_Pin_7, SET);
+//  ADC_val = PFCGetADC();
+//  DAC_SetChannel1Data(DAC_Align_12b_R, ADC_val);
+//  
+//  if (PFCStartPhase(PFCVoltageFilter(PFCGetADC()), 2000))
+//  {
+//    PFCOpenGate(&PFC.SCR[0]);
+//  }
+//
+// ADC_ClearFlag(ADC1, ADC_FLAG_EOC);
 }
 
 /**
@@ -511,6 +521,10 @@ INTERRUPT_HANDLER(TIM1_UPD_OVF_TRG_COM_IRQHandler,23)
 /* In order to detect unexpected events during development,
    it is recommended to set a breakpoint on the following instruction.
 */
+    TIM1_Cmd(DISABLE);
+    PFCOpenGate(&PFC.SCR[0]);
+    TIM1_ClearITPendingBit(TIM1_IT_Update);
+    
   //SCRActive = (SCRActive + 1) % 5;
   //PFCOpenGate(&PFC.SCR[SCRActive]);
 
