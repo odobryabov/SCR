@@ -75,7 +75,6 @@ typedef struct
 	PFCTimers_TypeDef Timers;
 } PFC_TypeDef;
 
-
 /* Private function prototypes -----------------------------------------------*/
 void PFCSCRInit(void);
 void PFCTimersInit(void);
@@ -84,7 +83,6 @@ uint16_t PFCGetADC(void);
 inline uint16_t PFCVoltageFilter(uint16_t voltageValue);
 FlagStatus PFCStartPhase(uint16_t voltageValue, uint16_t edge);
 void PFCOpenGate(SCR_TypeDef* Thyristor);
-uint16_t trpFilter(uint16_t input);
 void PFC_main(void);
 void PFC_DAC_init(void);
 

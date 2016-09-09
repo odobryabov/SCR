@@ -69,6 +69,8 @@ void main(void)
 //  GPIO_WriteBit(GPIOE, GPIO_Pin_7, RESET);
 //  
 //  GPIO_WriteBit(GPIOE, GPIO_Pin_0, RESET);
+  GPIO_Init( GPIOB, GPIO_Pin_0, GPIO_Mode_In_PU_No_IT);
+  GPIO_Init( GPIOB, GPIO_Pin_2, GPIO_Mode_In_PU_No_IT);
 
   //asm("rim");
   /* enable global interrupts */
@@ -79,7 +81,7 @@ void main(void)
     //ADC_val = PFCGetADC();
     //DAC_SetChannel1Data(DAC_Align_12b_R, ADC_val);
     if (!GPIO_ReadInputDataBit(GPIOC, GPIO_Pin_1))
-      i--;
+      i++;
     if (PFCStartPhase(PFCGetADC(), 2000))
     {
                         //PFCOpenGate(&PFC.SCR[0]);

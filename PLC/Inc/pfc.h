@@ -77,9 +77,7 @@ typedef struct
 void PFCSCRInit(void);
 void PFCTimersInit(void);
 void PFCADCInit (void);
-inline uint16_t PFCGetADC(void);
-inline uint16_t PFCVoltageFilter(uint16_t voltageValue);
-inline FlagStatus PFCStartPhase(uint16_t voltageValue, uint16_t edge);
+inline FlagStatus PFCStartPhase(uint16_t voltageValue, uint16_t edgeHigh, uint16_t edgeLow);
 void PFCOpenGate(SCR_TypeDef* Thyristor);
 void PFC_main(void);
 void PFC_DAC_init(void);

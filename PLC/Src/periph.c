@@ -313,4 +313,73 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
 }
+
+
+
+
+
+
+
+
+
+///* TIM10 init function */
+//void MX_TIM10_Init(void)
+//{
+
+//  htim10.Instance = TIM10;
+//  htim10.Init.Prescaler = 30;
+//  htim10.Init.CounterMode = TIM_COUNTERMODE_UP;
+//  htim10.Init.Period = 65535;
+//  htim10.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+//  HAL_TIM_Base_Init(&htim10);
+
+//}
+
+///* TIM11 init function */
+//void MX_TIM11_Init(void)
+//{
+
+//  htim11.Instance = TIM11;
+//  htim11.Init.Prescaler = 5;
+//  htim11.Init.CounterMode = TIM_COUNTERMODE_UP;
+//  htim11.Init.Period = 65535;
+//  htim11.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+//  HAL_TIM_Base_Init(&htim11);
+
+//	__HAL_TIM_CLEAR_IT(&htim11,TIM_IT_UPDATE);
+//	__HAL_TIM_ENABLE_IT(&htim11,TIM_IT_UPDATE);
+//	
+//}
+
+///* TIM13 init function */
+//void MX_TIM13_Init(void)
+//{
+
+//  htim13.Instance = TIM13;
+//  htim13.Init.Prescaler = 10;
+//  htim13.Init.CounterMode = TIM_COUNTERMODE_UP;
+//  htim13.Init.Period = 65535;
+//  htim13.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+//  HAL_TIM_Base_Init(&htim13);
+//	
+//	__HAL_TIM_CLEAR_IT(&htim13,TIM_IT_UPDATE);
+//	__HAL_TIM_ENABLE_IT(&htim13,TIM_IT_UPDATE);
+
+//}
+
+///* TIM14 init function */
+//void MX_TIM14_Init(void)
+//{
+
+//  htim14.Instance = TIM14;
+//  htim14.Init.Prescaler = 10;
+//  htim14.Init.CounterMode = TIM_COUNTERMODE_DOWN;
+//  htim14.Init.Period = 65535;
+//  htim14.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+//  HAL_TIM_Base_Init(&htim14);
+//	
+//	__HAL_TIM_CLEAR_IT(&htim14,TIM_IT_UPDATE);
+//	__HAL_TIM_ENABLE_IT(&htim14,TIM_IT_UPDATE);
+
+//}
 /************************ (C) COPYRIGHT *****END OF FILE****/

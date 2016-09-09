@@ -93,24 +93,38 @@ void PFCTimersInit(void)
         CLK_PeripheralClockConfig(CLK_Peripheral_TIM3, ENABLE);
         
 	/* configuration */
-        TIM1_TimeBaseInit((uint16_t)8-1,
+        TIM1_TimeBaseInit((uint16_t)3-1,
                        TIM1_CounterMode_Up,
                        0xFFFF,
                        FALSE);
 	
         TIM2_TimeBaseInit(TIM2_Prescaler_1,
                                TIM2_CounterMode_Up, 
-                               1);
+                               0xFFFF);
         
         TIM3_TimeBaseInit(TIM3_Prescaler_128,
                                TIM3_CounterMode_Down, 
                                1);
         
-	TIM1_ClearITPendingBit(TIM1_IT_Update);
-        TIM1_ITConfig(TIM1_IT_Update, ENABLE);
+
+//	
+ //       TIM2_EncoderInterfaceConfig(TIM2_EncoderMode_TI12,
+//	TIM2_ICPolarity_Rising,TIM2_ICPolarity_Falling);
+         
+CLK->PCKENR1|=5; //включаем тактирование TIM2
+TIM2->CCER1|=2; //CC2P,CC1P: Capture/compare 2 output polarity
+TIM2->CCMR1|=1; //CC1 channel is configured as input, IC1 is mapped on TI1FP1
+TIM2->CCMR2|=1;//CC2 channel is configured as input, IC2 is mapped on TI2FP2
+TIM2->SMCR|=1; // ??!!
+TIM2->CR1|=TIM_CR1_CEN; //включаем таймер
+
+        //TIM2_Cmd(ENABLE);
         
-        TIM2_ClearITPendingBit(TIM2_IT_Update);
-        TIM2_ITConfig(TIM2_IT_Update, ENABLE);
+	TIM1_ClearITPendingBit(TIM1_IT_Update);
+       TIM1_ITConfig(TIM1_IT_Update, ENABLE);
+        
+        //TIM2_ClearITPendingBit(TIM2_IT_Update);
+        //TIM2_ITConfig(TIM2_IT_Update, ENABLE);
         
         TIM3_ClearITPendingBit(TIM3_IT_Update);
         TIM3_ITConfig(TIM3_IT_Update, ENABLE);
@@ -241,7 +255,7 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			} else
 			{
                           /* default settings */
-                          TIM3_Cmd(DISABLE);
+                          TIM3_Cmd(DISABLE); /* !Disable the timer first. Otherwise it doesn't work! */
                           i = 0;
                           Thyristor->Mode = FirstImp;
                                 
@@ -258,37 +272,6 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			TIM3_SetCounter(PFC.Timers.NextImpPeriod); 
 			break;
 	}
-}
-
-/** 
-	* @brief  trapezoid area average. 
-	* @brief  First return values (windows numder) are incorrect 
-	* 				while temp array is not full of input values
-	* @param  input: input value.
-	* @param  temp: extern buffer array (window + 1 is size)
-	* @param  window: smooth width
-	* @retval output value
- */
-uint16_t trpFilter(uint16_t input)
-{
-        static uint16_t temp[3];
-	/* private variables */
-        uint16_t window = 3;
-	float sqSum = 0; /* area sum */
-	
-	/* place back an input value */
-	temp[window] = input;
-	/* push back a temp array */
-	for (uint16_t i = 0; i < window; i++)
-		temp[i] = temp[i+1];
-	
-	/* area sum calculating. */
-	/* trapezoid area equals (|a - b|*h)/2 + b*h. h = 1 */
-	for (uint16_t i = 0; i < window; i++)
-		sqSum += fabs((float)temp[i+1] - (float)temp[i]) / 2 + temp[i];
-	
-	/* return an average square */
-	return (uint16_t)(sqSum / window);
 }
 
 /** 

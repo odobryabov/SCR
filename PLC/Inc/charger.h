@@ -50,7 +50,7 @@ typedef enum
 /* ADC filtered variables defines */
 #define I_SENSOR_COM				fltrIsensorCom 	/* ADC1ConvertedValues[0]	PB0	Iin	*/
 #define T_SENSOR					fltrTsensor 	/* ADC1ConvertedValues[1]	PB1	Tempr */
-#define U_SENSOR  					fltrUsensor 	/* ADC1ConvertedValues[2] PC4	Uin */
+#define U_SENSOR  					fltrUsensor 	/* ADC1ConvertedValues[2] 	PC4	Uin */
 #define I_SENSOR_AB					fltrIsensorAB 	/* ADC1ConvertedValues[3]	PC5	Iinab */
 
 /* current and voltage outputs defines */
