@@ -188,4 +188,26 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			break;
 	}
 }
+
+void ADC_IRQHandler(void)
+{
+	if (__HAL_ADC_GET_FLAG(&hadc2, ADC_FLAG_AWD))
+	{
+		__HAL_ADC_CLEAR_FLAG(&hadc2, ADC_FLAG_AWD);
+		
+		if (flag != SET)
+		{
+			ADC2->HTR = 4095;
+			ADC2->LTR = 1000;
+			flag = SET;
+			__HAL_TIM_SET_AUTORELOAD(&htim13, count);
+			__HAL_TIM_ENABLE(&htim13);
+		} else
+		{
+			ADC2->HTR = 2000;
+			ADC2->LTR = 0;
+			flag = RESET;
+		}
+	}
+}
 /************************ (C) COPYRIGHT ***** END OF FILE ****/

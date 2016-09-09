@@ -321,7 +321,47 @@ void MX_GPIO_Init(void)
 
 
 
+/* ADC2 init function */
+//void MX_ADC2_Init(void)
+//{
 
+//  ADC_AnalogWDGConfTypeDef AnalogWDGConfig;
+//  ADC_ChannelConfTypeDef sConfig;
+
+//    /**Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion) 
+//    */
+//  hadc2.Instance = ADC2;
+//  hadc2.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV8;
+//  hadc2.Init.Resolution = ADC_RESOLUTION12b;
+//  hadc2.Init.ScanConvMode = DISABLE;
+//  hadc2.Init.ContinuousConvMode = ENABLE;
+//  hadc2.Init.DiscontinuousConvMode = DISABLE;
+//  hadc2.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
+//  hadc2.Init.DataAlign = ADC_DATAALIGN_RIGHT;
+//  hadc2.Init.NbrOfConversion = 1;
+//  hadc2.Init.DMAContinuousRequests = DISABLE;
+//  hadc2.Init.EOCSelection = EOC_SINGLE_SEQ_CONV;
+//  HAL_ADC_Init(&hadc2);
+
+//    /**Configure the analog watchdog 
+//    */
+//  AnalogWDGConfig.WatchdogMode = ADC_ANALOGWATCHDOG_SINGLE_REG;
+//  AnalogWDGConfig.HighThreshold = 2000;
+//  AnalogWDGConfig.LowThreshold = 1000;
+//  AnalogWDGConfig.Channel = ADC_CHANNEL_11;
+//  AnalogWDGConfig.ITMode = ENABLE;
+//  HAL_ADC_AnalogWDGConfig(&hadc2, &AnalogWDGConfig);
+
+//    /**Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time. 
+//    */
+//  sConfig.Channel = ADC_CHANNEL_11;
+//  sConfig.Rank = 1;
+//  sConfig.SamplingTime = ADC_SAMPLETIME_480CYCLES;
+//  HAL_ADC_ConfigChannel(&hadc2, &sConfig);
+//  
+//  HAL_ADC_Start(&hadc2);
+
+//}
 ///* TIM10 init function */
 //void MX_TIM10_Init(void)
 //{
