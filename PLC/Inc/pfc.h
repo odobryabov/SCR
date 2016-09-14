@@ -61,6 +61,10 @@ typedef struct
 	uint16_t NextImpPeriod;
 	uint16_t SpacePeriod;
 	uint16_t NextImpNumber;
+	TIM_HandleTypeDef TIMSwitchPhase;
+	TIM_HandleTypeDef TIMCounter;
+	TIM_HandleTypeDef TIMSemiPeriod;
+	TIM_HandleTypeDef TIMOpenGate;
 } PFCTimers_TypeDef;
 
 /** 
@@ -74,10 +78,10 @@ typedef struct
 
 
 /* Private function prototypes -----------------------------------------------*/
-void PFCSCRInit(void);
+void PFCInit(void);
 void PFCTimersInit(void);
 void PFCADCInit (void);
-inline FlagStatus PFCStartPhase(uint16_t voltageValue, uint16_t edgeHigh, uint16_t edgeLow);
+FlagStatus PFCStartPhase(uint32_t voltageValue, uint32_t edgeHigh, uint32_t edgeLow);
 void PFCOpenGate(SCR_TypeDef* Thyristor);
 void PFC_main(void);
 void PFC_DAC_init(void);

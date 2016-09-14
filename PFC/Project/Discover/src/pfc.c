@@ -24,7 +24,7 @@ SCRPhase_TypeDef SCRActive;
 /* External variables */
 
 /******************************************************************************/
-/*            			Phase-fired controller functions         									*/ 
+/*            			Phase-fired controller functions                */ 
 /******************************************************************************/
 
 /** 
@@ -91,43 +91,43 @@ void PFCTimersInit(void)
         CLK_PeripheralClockConfig(CLK_Peripheral_TIM1, ENABLE);
         CLK_PeripheralClockConfig(CLK_Peripheral_TIM2, ENABLE);
         CLK_PeripheralClockConfig(CLK_Peripheral_TIM3, ENABLE);
+        CLK_PeripheralClockConfig(CLK_Peripheral_TIM4, ENABLE);
         
 	/* configuration */
-        TIM1_TimeBaseInit((uint16_t)3-1,
-                       TIM1_CounterMode_Up,
+        /* phase switch */
+        TIM1_TimeBaseInit((uint16_t)4-1,
+                       TIM1_CounterMode_Down,
                        0xFFFF,
                        FALSE);
 	
-        TIM2_TimeBaseInit(TIM2_Prescaler_1,
+        /* counter */
+        TIM2_TimeBaseInit(TIM2_Prescaler_8,
                                TIM2_CounterMode_Up, 
                                0xFFFF);
         
+        /* phase shift */
         TIM3_TimeBaseInit(TIM3_Prescaler_128,
-                               TIM3_CounterMode_Down, 
-                               1);
+                               TIM3_CounterMode_Up, 
+                               0xFFFF);
+        /* gate */
+        TIM4_TimeBaseInit(TIM4_Prescaler_128,
+                                127);
         
-
-//	
- //       TIM2_EncoderInterfaceConfig(TIM2_EncoderMode_TI12,
-//	TIM2_ICPolarity_Rising,TIM2_ICPolarity_Falling);
-         
-CLK->PCKENR1|=5; //включаем тактирование TIM2
-TIM2->CCER1|=2; //CC2P,CC1P: Capture/compare 2 output polarity
-TIM2->CCMR1|=1; //CC1 channel is configured as input, IC1 is mapped on TI1FP1
-TIM2->CCMR2|=1;//CC2 channel is configured as input, IC2 is mapped on TI2FP2
-TIM2->SMCR|=1; // ??!!
-TIM2->CR1|=TIM_CR1_CEN; //включаем таймер
-
-        //TIM2_Cmd(ENABLE);
+        //TIM4_ARRPreloadConfig(ENABLE);
         
 	TIM1_ClearITPendingBit(TIM1_IT_Update);
-       TIM1_ITConfig(TIM1_IT_Update, ENABLE);
+        TIM1_ITConfig(TIM1_IT_Update, ENABLE);
         
         //TIM2_ClearITPendingBit(TIM2_IT_Update);
         //TIM2_ITConfig(TIM2_IT_Update, ENABLE);
         
         TIM3_ClearITPendingBit(TIM3_IT_Update);
         TIM3_ITConfig(TIM3_IT_Update, ENABLE);
+        
+        
+        TIM4_ClearITPendingBit(TIM4_IT_Update);
+        TIM4_ITConfig(TIM4_IT_Update, ENABLE);
+ 
 }
 
 /**
@@ -148,50 +148,27 @@ void PFCADCInit(void)
   - Resolution = 12Bit
   - Prescaler = /1
   - sampling time 9 */
-  ADC_Init(ADC1, ADC_ConversionMode_Single,ADC_Resolution_12Bit, ADC_Prescaler_2);
+  ADC_Init(ADC1, ADC_ConversionMode_Continuous,ADC_Resolution_12Bit, ADC_Prescaler_2);
   ADC_SamplingTimeConfig(ADC1, ADC_Group_SlowChannels, ADC_SamplingTime_384Cycles);
   /* disable SchmittTrigger for ADC_Channel_1, to save power */
   ADC_SchmittTriggerConfig(ADC1, ADC_Channel_1, DISABLE);
  /* disable DMA for ADC1 */
   ADC_DMACmd(ADC1, DISABLE);
- 
-  //ADC_ITConfig(ADC1, ADC_IT_EOC, ENABLE);
+  
+  ADC_AnalogWatchdogConfig(ADC1, ADC_AnalogWatchdogSelection_Channel1, 3000, 1000);
+  
+  ADC_ITConfig(ADC1, ADC_IT_AWD, ENABLE);
+  
   /* Enable ADC1 hannel 1 */
   ADC_Cmd(ADC1, ENABLE);
   ADC_ChannelCmd(ADC1, ADC_Channel_1, ENABLE);
   
   /* a short time of delay is required after enable ADC */
-  delay_10us(3);
+  //delay_10us(3);
+  
+  ADC_SoftwareStartConv(ADC1);
 }
 
-/**
-	* @brief  Get ADC value
-	* @retval	conversion value
- */
-uint16_t PFCGetADC(void)
-{
-  /* start ADC convertion by software */
-    ADC_SoftwareStartConv(ADC1);
-  /* wait until end-of-covertion */
-    while( ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == 0 );
-  /* read ADC convertion result */
-    return ADC_GetConversionValue(ADC1);
-}
-
-/**
-	* @brief  Filter for voltage
-	* @param	voltageValue: real voltage value
-	* @retval	Filtered value
- */
-uint16_t PFCVoltageFilter(uint16_t voltageValue)
-{
-	uint16_t result;
-	
-	result = voltageValue;
-	
-        return result;
-	//return trpFilter(voltageValue);
-}
 
 /** 
 	* @brief 	start point definition
@@ -238,9 +215,10 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			/* open gate */
 			GPIO_WriteBit(Thyristor->GPIOx, Thyristor->GPIO_Pin, SET);
 			/* set period */
-			TIM3_SetCounter(PFC.Timers.FirstImpPeriod);
+			TIM4_SetAutoreload(PFC.Timers.FirstImpPeriod);
 			/* enable timer */
-                        TIM3_Cmd(ENABLE);
+                        TIM4_Cmd(ENABLE);
+                     
 			break;
 		
 		/* space between impulses */
@@ -251,11 +229,11 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			if (i++ < PFC.Timers.NextImpNumber)
 			{
 				/* set period */
-                                TIM3_SetCounter(PFC.Timers.SpacePeriod);
+                                TIM4_SetAutoreload(PFC.Timers.SpacePeriod);
 			} else
 			{
                           /* default settings */
-                          TIM3_Cmd(DISABLE); /* !Disable the timer first. Otherwise it doesn't work! */
+                          TIM4_Cmd(DISABLE); /* !Disable the timer first. Otherwise it doesn't work! */
                           i = 0;
                           Thyristor->Mode = FirstImp;
                                 
@@ -269,7 +247,7 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			/* shift mode to FirstImp to goto Space mode after delay */
 			Thyristor->Mode = FirstImp;
 			/* set period */
-			TIM3_SetCounter(PFC.Timers.NextImpPeriod); 
+			TIM4_SetAutoreload(PFC.Timers.NextImpPeriod); 
 			break;
 	}
 }

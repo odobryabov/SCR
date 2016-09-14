@@ -95,7 +95,7 @@ BOOL xMBPortSerialInit( MBPort_InitTypeDef* mbPort, UCHAR ucPORT, ULONG ulBaudRa
   /* Peripheral interrupt init*/
 		ENTER_CRITICAL_SECTION();
 		
-    HAL_NVIC_SetPriority(USART2_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(USART2_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(USART2_IRQn);
 		
 		EXIT_CRITICAL_SECTION();
@@ -138,7 +138,7 @@ BOOL xMBPortSerialInit( MBPort_InitTypeDef* mbPort, UCHAR ucPORT, ULONG ulBaudRa
 		 /* Peripheral interrupt init*/
 		ENTER_CRITICAL_SECTION();
 		
-    HAL_NVIC_SetPriority(UART5_IRQn, 0, 0);
+    HAL_NVIC_SetPriority(UART5_IRQn, 2, 0);
     HAL_NVIC_EnableIRQ(UART5_IRQn);
 		
 		EXIT_CRITICAL_SECTION();

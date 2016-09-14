@@ -18,22 +18,25 @@
 #include <math.h>
 
 /* Global variables */
-PFC_TypeDef PFC;
-SCRPhase_TypeDef SCRActive;
+PFC_TypeDef PFC;		//Global PFC handler
+
 /* External variables */
 
 /******************************************************************************/
-/*            			Phase-fired controller functions         									*/ 
+/*            			Phase-fired controller functions         			  */ 
 /******************************************************************************/
 
 /** 
 	* @brief 	Thyristor handles init
 	* @retval	None
  */
-void PFCSCRInit(void)
+void PFCInit(void)
 {
-	/* start with the first SCR */
-	SCRActive = L1_Plus;
+	/* unlock impulse periods init common structure */
+	PFC.Timers.FirstImpPeriod   = 10000;
+	PFC.Timers.NextImpPeriod    = 1000;
+	PFC.Timers.NextImpNumber 	= 0;
+	PFC.Timers.SpacePeriod 		= 500;
 	
 	/* thyristor 1 */
 	PFC.SCR[0].Phase = L1_Plus;
@@ -84,30 +87,6 @@ void PFCSCRInit(void)
 }
 
 /** 
-	* @brief  Timers init
-        * @param: TIM1: switch, TIM2: counter, TIM3: gate
-	* @retval	None
- */
-void PFCTimersInit(void)
-{
-	/* unlock impulse periods init common structure */
-	PFC.Timers.FirstImpPeriod   = 10000;
-	PFC.Timers.NextImpPeriod    = 1000;
-	PFC.Timers.NextImpNumber 	= 0;
-	PFC.Timers.SpacePeriod 		= 500;
-	
-}
-
-/**
-	* @brief  ADC init
-	* @retval None
- */
-void PFCADCInit(void)
-{
-	
-}
-
-/** 
 	* @brief 	start point definition
 	* @param	voltageValue: voltage value
     * @param    edgeHigh: high edge
@@ -153,9 +132,9 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			/* open gate */
 			HAL_GPIO_WritePin(Thyristor->GPIOx, Thyristor->GPIO_Pin, GPIO_PIN_SET);
 			/* set period */
-			__HAL_TIM_SET_AUTORELOAD(&htim14, PFC.Timers.FirstImpPeriod) ;
+			__HAL_TIM_SET_AUTORELOAD(&PFC.Timers.TIMOpenGate, PFC.Timers.FirstImpPeriod) ;
 			/* enable timer */
-            __HAL_TIM_ENABLE(&htim14);
+            __HAL_TIM_ENABLE(&PFC.Timers.TIMOpenGate);
 			break;
 		
 		/* space between impulses */
@@ -166,11 +145,11 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			if (i++ < PFC.Timers.NextImpNumber)
 			{
 				/* set period */
-				__HAL_TIM_SET_AUTORELOAD(&htim14, PFC.Timers.SpacePeriod) ;
+				__HAL_TIM_SET_AUTORELOAD(&PFC.Timers.TIMOpenGate, PFC.Timers.SpacePeriod) ;
 			} else
 			{
 				/* default settings */
-				__HAL_TIM_DISABLE(&htim14);
+				__HAL_TIM_DISABLE(&PFC.Timers.TIMOpenGate);
 				i = 0;
 				Thyristor->Mode = FirstImp;
                                 
@@ -184,30 +163,8 @@ void PFCOpenGate(SCR_TypeDef* Thyristor)
 			/* shift mode to FirstImp to goto Space mode after delay */
 			Thyristor->Mode = FirstImp;
 			/* set period */
-			__HAL_TIM_SET_AUTORELOAD(&htim14, PFC.Timers.NextImpPeriod) ;
+			__HAL_TIM_SET_AUTORELOAD(&PFC.Timers.TIMOpenGate, PFC.Timers.NextImpPeriod) ;
 			break;
-	}
-}
-
-void ADC_IRQHandler(void)
-{
-	if (__HAL_ADC_GET_FLAG(&hadc2, ADC_FLAG_AWD))
-	{
-		__HAL_ADC_CLEAR_FLAG(&hadc2, ADC_FLAG_AWD);
-		
-		if (flag != SET)
-		{
-			ADC2->HTR = 4095;
-			ADC2->LTR = 1000;
-			flag = SET;
-			__HAL_TIM_SET_AUTORELOAD(&htim13, count);
-			__HAL_TIM_ENABLE(&htim13);
-		} else
-		{
-			ADC2->HTR = 2000;
-			ADC2->LTR = 0;
-			flag = RESET;
-		}
 	}
 }
 /************************ (C) COPYRIGHT ***** END OF FILE ****/

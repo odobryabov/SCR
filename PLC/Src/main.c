@@ -38,6 +38,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "periph.h"
+#include "pfc.h"
 #include "threads.h"
 #include "otherfunct.h"
 /* USER CODE END Includes */
@@ -100,6 +101,13 @@ int main(void)
 	MX_TIM8_Init();
 	MX_ADC1_Init();
 
+	MX_ADC2_Init();
+	MX_TIM10_Init();
+	MX_TIM11_Init();
+	MX_TIM13_Init();
+	MX_TIM14_Init();
+  
+	PFCInit();
 	/* USER CODE BEGIN 2 */
 	/* first load from flash */
 	portENTER_CRITICAL();

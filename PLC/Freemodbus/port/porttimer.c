@@ -41,7 +41,7 @@ BOOL xMBPortTimersInit( MBPort_InitTypeDef* mbPort, USHORT usTim1Timerout50us )
   /* Peripheral interrupt init*/
 		ENTER_CRITICAL_SECTION();
 		
-    HAL_NVIC_SetPriority(TIM2_IRQn, 1, 1);
+    HAL_NVIC_SetPriority(TIM2_IRQn, 2, 1);
     HAL_NVIC_EnableIRQ(TIM2_IRQn);
 		
 		EXIT_CRITICAL_SECTION();
@@ -59,7 +59,7 @@ BOOL xMBPortTimersInit( MBPort_InitTypeDef* mbPort, USHORT usTim1Timerout50us )
   /* Peripheral interrupt init*/
 		ENTER_CRITICAL_SECTION();
 		
-    HAL_NVIC_SetPriority(TIM3_IRQn, 1, 1);
+    HAL_NVIC_SetPriority(TIM3_IRQn, 2, 1);
     HAL_NVIC_EnableIRQ(TIM3_IRQn);
 		
 		EXIT_CRITICAL_SECTION();

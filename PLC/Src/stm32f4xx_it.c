@@ -36,6 +36,7 @@
 #include "stm32f4xx_it.h"
 #include "cmsis_os.h"
 #include "mb.h"
+#include "pfc.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -43,8 +44,11 @@
 
 /* External variables --------------------------------------------------------*/
 extern void xPortSysTickHandler(void);
+extern ADC_HandleTypeDef hadc2;
+extern PFC_TypeDef PFC;
 /* Global variables --------------------------------------------------------*/
 MBPort_InitTypeDef mbPortHMI, mbPortExtern;	
+
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -135,9 +139,11 @@ void USART2_IRQHandler(void)
   /* USER CODE END USART2_IRQn 1 */
 }
 
+/**
+* @brief This function handles UART5 global interrupt. Extern modbus
+*/
 void UART5_IRQHandler(void)
 {
-  /* USER CODE BEGIN USART2_IRQn 0 */
 	/* UART in mode Receiver */
 	if(__HAL_UART_GET_IT_SOURCE(&mbPortExtern.UARTHandler, UART_IT_RXNE)!= RESET) 
 	{
@@ -160,13 +166,64 @@ void UART5_IRQHandler(void)
 		/* Disable the UART Transmit Complete Interrupt */
 		__HAL_UART_DISABLE_IT(&mbPortExtern.UARTHandler, UART_IT_TC);
 	}
-  /* USER CODE END UART5_IRQn 0 */
-
-  /* USER CODE BEGIN UART5_IRQn 1 */
-
-  /* USER CODE END UART5_IRQn 1 */
 }
 /* USER CODE BEGIN 1 */
+/***************************************************************************************************/
+/**
+* @brief This function handles ADC global interrupt.
+*/
+void ADC_IRQHandler(void)
+{
+	/* set flag if adc value is more than high threshold and reset if less than low threshold */
+	static uint8_t flag = RESET;
+	
+	if (__HAL_ADC_GET_FLAG(&hadc2, ADC_FLAG_AWD))
+	{
+		__HAL_ADC_CLEAR_FLAG(&PFC.Timers.TIMOpenGate, ADC_FLAG_AWD);
+			
+		/* if flag is reset and watchDog occured than this is a start point */
+		if (flag != SET)
+		{
+			/* disable high threshold */
+			ADC2->HTR = 4095;										
+			ADC2->LTR = 1000;
+			flag = SET;
+			/* set switchPhase timer period as counter period */
+			__HAL_TIM_SET_AUTORELOAD(&PFC.Timers.TIMSemiPeriod, 1);	//__HAL_TIM_GET_COUNTER(&PFC.Timers.TIMCounter)
+			__HAL_TIM_ENABLE(&PFC.Timers.TIMSwitchPhase);
+			/* reset counter */
+			//__HAL_TIM_SET_AUTORELOAD(&PFC.Timers.TIMCounter, 1);	
+			//__HAL_TIM_ENABLE(&PFC.Timers.TIMCounter);				
+		} else
+		{
+			/* disable low threshold */
+			ADC2->HTR = 2000;
+			ADC2->LTR = 0;											
+			flag = RESET;
+		}
+	}
+}
 
+/**
+* @brief This function handles TIM13 global interrupt.
+*/
+void TIM8_UP_TIM13_IRQHandler(void)
+{
+	/* disable timer */
+	__HAL_TIM_DISABLE(&PFC.Timers.TIMSemiPeriod);
+	__HAL_TIM_CLEAR_IT(&PFC.Timers.TIMSemiPeriod,TIM_IT_UPDATE);
+	/* open thyristor */
+    PFCOpenGate(&PFC.SCR[0]);
+}
+
+/**
+* @brief This function handles TIM14 global interrupt.
+*/
+void TIM8_TRG_COM_TIM14_IRQHandler(void)
+{
+	__HAL_TIM_CLEAR_IT(&PFC.Timers.TIMOpenGate,TIM_IT_UPDATE);
+	PFC.SCR[0].Mode++;
+	PFCOpenGate(&PFC.SCR[0]);
+}
 /* USER CODE END 1 */
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

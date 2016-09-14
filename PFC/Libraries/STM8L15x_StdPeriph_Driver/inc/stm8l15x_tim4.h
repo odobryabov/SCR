@@ -309,7 +309,7 @@ void TIM4_ClearITPendingBit(TIM4_IT_TypeDef TIM4_IT);
  */
 
 #endif /* __STM8L15x_TIM4_H */
-
+//
 /**
   * @}
   */

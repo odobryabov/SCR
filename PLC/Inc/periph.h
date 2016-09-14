@@ -28,6 +28,12 @@ void MX_TIM1_Init(void);
 void MX_TIM8_Init(void);
 void MX_ADC1_Init(void);
 
+void MX_ADC2_Init(void);
+void MX_TIM10_Init(void);
+void MX_TIM11_Init(void);
+void MX_TIM13_Init(void);
+void MX_TIM14_Init(void);
+
 
 #endif
 /************************ (C) COPYRIGHT *****END OF FILE****/

@@ -261,6 +261,7 @@
           <state>$PROJ_DIR$\..\..\Libraries\STM8L15x_StdPeriph_Driver\inc</state>
           <state>C:\Users\Tech\Desktop\STM8L-Discovery\Project\Discover\src</state>
           <state>C:\Users\Tech\Desktop\STM8L-Discovery\Project\Discover\inc</state>
+          <state>C:\SCR\PFC\Libraries\STM8L15x_StdPeriph_Driver\src</state>
         </option>
         <option>
           <name>CCStdIncCheck</name>
@@ -1630,6 +1631,9 @@
     </file>
     <file>
       <name>$PROJ_DIR$\..\..\Libraries\STM8L15x_StdPeriph_Driver\src\stm8l15x_tim3.c</name>
+    </file>
+    <file>
+      <name>$PROJ_DIR$\..\..\Libraries\STM8L15x_StdPeriph_Driver\src\stm8l15x_tim4.c</name>
     </file>
   </group>
   <group>

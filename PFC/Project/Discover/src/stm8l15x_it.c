@@ -25,7 +25,7 @@
 #include "discover_functions.h"
 #include "discover_board.h"
 #include "stm8l_discovery_lcd.h"
-#include "pfc.h"    
+#include "pfc.h"  
 
 extern bool KeyPressed;
 extern uint8_t state_machine;
@@ -35,6 +35,7 @@ extern uint8_t t_bar[2];
 
 extern PFC_TypeDef PFC;
 extern SCRPhase_TypeDef SCRActive;
+extern uint16_t i;
 
 //uint16_t ADC_val;
 
@@ -432,16 +433,38 @@ INTERRUPT_HANDLER(ADC1_COMP_IRQHandler,18)
 /* In order to detect unexpected events during development,
    it is recommended to set a breakpoint on the following instruction.
 */
-//  GPIO_WriteBit(GPIOE, GPIO_Pin_7, SET);
-//  ADC_val = PFCGetADC();
-//  DAC_SetChannel1Data(DAC_Align_12b_R, ADC_val);
-//  
-//  if (PFCStartPhase(PFCVoltageFilter(PFCGetADC()), 2000))
-//  {
-//    PFCOpenGate(&PFC.SCR[0]);
-//  }
-//
-// ADC_ClearFlag(ADC1, ADC_FLAG_EOC);
+  
+  if (ADC_GetFlagStatus(ADC1, ADC_FLAG_AWD))
+  {
+    static uint8_t flag = RESET;
+    uint16_t count = TIM2_GetCounter();
+    
+    
+    if (flag != SET)  
+    {
+      if (count != 0) /* first time check */
+      {
+        ADC_AnalogWatchdogThresholdsConfig(ADC1, 4095, 1000);
+        flag = SET;
+        //PFCOpenGate(&PFC.SCR[0]);
+      
+        TIM1_SetAutoreload(count);
+        TIM1_SetCounter(0); /* reset for correction */
+      }   
+      else
+      {
+        TIM1_Cmd(ENABLE);
+      }
+      TIM2_SetCounter(0);
+      TIM2_Cmd(ENABLE);
+    } 
+    else
+    {
+      ADC_AnalogWatchdogThresholdsConfig(ADC1, 3000, 0);
+      flag = RESET;
+    }
+    ADC_ClearFlag(ADC1, ADC_FLAG_AWD);
+  }
 }
 
 /**
@@ -472,7 +495,7 @@ INTERRUPT_HANDLER(TIM2_CAP_IRQHandler,20)
 /* In order to detect unexpected events during development,
    it is recommended to set a breakpoint on the following instruction.
 */
-  while (1);
+  //while (1);
 
 }
 
@@ -489,9 +512,7 @@ INTERRUPT_HANDLER(TIM3_UPD_OVF_TRG_BRK_IRQHandler,21)
 /* In order to detect unexpected events during development,
    it is recommended to set a breakpoint on the following instruction.
 */      
-        TIM3_ClearITPendingBit(TIM3_IT_Update);
-	PFC.SCR[0].Mode++;
-	PFCOpenGate(&PFC.SCR[0]);
+    
 }
 /**
   * @brief Timer3 Capture/Compare Interrupt routine.
@@ -519,14 +540,11 @@ INTERRUPT_HANDLER(TIM1_UPD_OVF_TRG_COM_IRQHandler,23)
 {
 /* In order to detect unexpected events during development,
    it is recommended to set a breakpoint on the following instruction.
-*/
+*/  
     TIM1_Cmd(DISABLE);
-    PFCOpenGate(&PFC.SCR[0]);
     TIM1_ClearITPendingBit(TIM1_IT_Update);
-    
-  //SCRActive = (SCRActive + 1) % 5;
-  //PFCOpenGate(&PFC.SCR[SCRActive]);
-
+    PFCOpenGate(&PFC.SCR[0]);
+    TIM1_Cmd(ENABLE);
 }
 /**
   * @brief TIM1 Capture/Compare Interrupt routine.
@@ -556,8 +574,10 @@ INTERRUPT_HANDLER(TIM4_UPD_OVF_TRG_IRQHandler,25)
 /* In order to detect unexpected events during development,
    it is recommended to set a breakpoint on the following instruction.
 */
-  while (1);
-
+    TIM4_ClearITPendingBit(TIM4_IT_Update);
+    PFC.SCR[0].Mode++;
+    PFCOpenGate(&PFC.SCR[0]);
+   
 }
 /**
   * @brief SPI1 Interrupt routine.

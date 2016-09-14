@@ -33,8 +33,9 @@ extern UCHAR    ucSCoilBuf[S_COIL_NCOILS/8];
 extern uint16_t   usSRegInBuf[S_REG_INPUT_NREGS];
 extern uint16_t   usSRegHoldBuf[S_REG_HOLDING_NREGS];
 
+extern ADC_HandleTypeDef hadc2;
 /******************************************************************************/
-/*            							FreeRTOS threads         													*/ 
+/*            				FreeRTOS threads         						  */ 
 /******************************************************************************/
 /* start task for calculating */
 void StartCalcThread(void const * argument)
@@ -49,6 +50,7 @@ void StartCalcThread(void const * argument)
 				tempUsensor		[U_SENSOR_WINDOW 		+ 1], 
 				tempIsensorAB	[I_SENSOR_AB_WINDOW 	+ 1];
 	
+	HAL_ADC_Start(&hadc2);
 	/* Infinite loop */
 	for (;;)
 	{

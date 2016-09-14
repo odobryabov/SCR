@@ -19,16 +19,16 @@
 #include <math.h>
 
 /* Global variables */
-uint16_t Al2;										/* alarm word 2 */
+uint16_t Al2;									/* alarm word 2 */
 float 	 DeTemp;								/* smth temperature variable */
 uint16_t Imper;									/* overload flag */
 uint16_t KizT;									/* smth temperature ratio */
 uint16_t stop;									/* stop flag */
-int16_t	 tpm;										/* AB temperature */
-uint16_t UeZ;										/* contactor 1 flag */
+int16_t	 tpm;									/* AB temperature */
+uint16_t UeZ;									/* contactor 1 flag */
 float 	 Urout;									/* voltage precalculation variable */
-uint16_t UsZ;										/* contactor 2 flag */
-float 	 Uzd;										/* voltage precalculation variable */
+uint16_t UsZ;									/* contactor 2 flag */
+float 	 Uzd;									/* voltage precalculation variable */
 uint16_t VentAv;								/* ventilation alarm flag */
 uint16_t Zogr;									/* deep uncharge flag */
 
@@ -59,7 +59,7 @@ extern uint32_t tempIsensorCom[I_SENSOR_COM_WINDOW],
 								tempIsensorAB	[I_SENSOR_AB_WINDOW];
 
 /******************************************************************************/
-/*            							Charger functions         												*/ 
+/*            			Charger functions         							  */ 
 /******************************************************************************/
 
 /** 
@@ -100,34 +100,34 @@ void setDefaultValues(void)
 void packAlarmsWarnings(void)
 {
 	/* pack Al1 */
-	Al1 = setBitInByte(Al1, 0, tpm < -50);														/* 1st bit if temperature less than -50 */
-	Al1 = setBitInByte(Al1, 1, !POWER_SWITCH_ON);											/* 2nd bit if QF1 is switched off */
-	Al1 = setBitInByte(Al1, 2, !UZP_READY);														/* 3th bit if QF2 is switched off */
-	Al1 = setBitInByte(Al1, 3, !LOAD_SWITCH_ON);											/* 4th bit if QF9 is switched off */
-	Al1 = setBitInByte(Al1, 4, tpm < TminAB);													/* 5th bit if temperature less than minimum */
-	Al1 = setBitInByte(Al1, 5, tpm > TmaxAB);													/* 6th bit if temperature more than maximum */
-	Al1 = setBitInByte(Al1, 6, VentAv);																/* 7th bit if auto-ventilation is switched on */
-	Al1 = setBitInByte(Al1, 7, (!SUPPLY_220) | (!SUPPLY_24));					/* 8th bit if 24V or Power are switched off */
+	Al1 = setBitInByte(Al1, 0, tpm < -50);								/* 1st bit if temperature less than -50 */
+	Al1 = setBitInByte(Al1, 1, !POWER_SWITCH_ON);						/* 2nd bit if QF1 is switched off */
+	Al1 = setBitInByte(Al1, 2, !UZP_READY);								/* 3th bit if QF2 is switched off */
+	Al1 = setBitInByte(Al1, 3, !LOAD_SWITCH_ON);						/* 4th bit if QF9 is switched off */
+	Al1 = setBitInByte(Al1, 4, tpm < TminAB);							/* 5th bit if temperature less than minimum */
+	Al1 = setBitInByte(Al1, 5, tpm > TmaxAB);							/* 6th bit if temperature more than maximum */
+	Al1 = setBitInByte(Al1, 6, VentAv);									/* 7th bit if auto-ventilation is switched on */
+	Al1 = setBitInByte(Al1, 7, (!SUPPLY_220) | (!SUPPLY_24));			/* 8th bit if 24V or Power are switched off */
 	
 	/* pack Al2 */
 	Al2 = setBitInByte(Al2, 0, (Rzd != CHARGE_MODE_STOP) & I_LIMIT);	/* 1st bit if charge is not in stop mode and current limit is switched on */
-	Al2 = setBitInByte(Al2, 1, I_MAX);																/* 2nd bit if I_MAX is switched on */
-	Al2 = setBitInByte(Al2, 2, PHASE_BREAK & POWER_SWITCH_ON);				/* 3th bit if phase break and QF1 is switched on */
-	Al2 = setBitInByte(Al2, 3, OVERLOAD | Imper);											/* 4th bit if overload or Imper */
-	Al2 = setBitInByte(Al2, 4, THYRISTOR_OVERHEAD);										/* 5th bit if not Tyr */
-	Al2 = setBitInByte(Al2, 5, TRANSFORMER_OVERHEAD);									/* 6th bit if not Trans */
-	Al2 = setBitInByte(Al2, 6, Zogr);																	/* 7th bit if Zogr */
-	Al2 = setBitInByte(Al2, 7, 0);																		/* 8th bit is FALSE */
+	Al2 = setBitInByte(Al2, 1, I_MAX);									/* 2nd bit if I_MAX is switched on */
+	Al2 = setBitInByte(Al2, 2, PHASE_BREAK & POWER_SWITCH_ON);			/* 3th bit if phase break and QF1 is switched on */
+	Al2 = setBitInByte(Al2, 3, OVERLOAD | Imper);						/* 4th bit if overload or Imper */
+	Al2 = setBitInByte(Al2, 4, THYRISTOR_OVERHEAD);						/* 5th bit if not Tyr */
+	Al2 = setBitInByte(Al2, 5, TRANSFORMER_OVERHEAD);					/* 6th bit if not Trans */
+	Al2 = setBitInByte(Al2, 6, Zogr);									/* 7th bit if Zogr */
+	Al2 = setBitInByte(Al2, 7, 0);										/* 8th bit is FALSE */
 	
 	/* pack Al3 */
-	Al3 = setBitInByte(Al3, 0, I_MAX);																/* 1st bit if current maximum surplus */
-	Al3 = setBitInByte(Al3, 1, PHASE_BREAK & UZP_READY);							/* 2nd bit if phase break and QF2 is switched on */
-	Al3 = setBitInByte(Al3, 2, THYRISTOR_OVERHEAD);										/* 3th bit if not Tyr */
-	Al3 = setBitInByte(Al3, 3, TRANSFORMER_OVERHEAD);									/* 4th bit if not Trans */
-	Al3 = setBitInByte(Al3, 4, OVERLOAD | Imper);											/* 5th bit if overload or Imper */
-	Al3 = setBitInByte(Al3, 5, Zogr);																	/* 6th bit if Zogr */
-	Al3 = setBitInByte(Al3, 6, 0);																		/* 7th bit is FALSE */
-	Al3 = setBitInByte(Al3, 7, 0);																		/* 8th bit is FALSE */
+	Al3 = setBitInByte(Al3, 0, I_MAX);									/* 1st bit if current maximum surplus */
+	Al3 = setBitInByte(Al3, 1, PHASE_BREAK & UZP_READY);				/* 2nd bit if phase break and QF2 is switched on */
+	Al3 = setBitInByte(Al3, 2, THYRISTOR_OVERHEAD);						/* 3th bit if not Tyr */
+	Al3 = setBitInByte(Al3, 3, TRANSFORMER_OVERHEAD);					/* 4th bit if not Trans */
+	Al3 = setBitInByte(Al3, 4, OVERLOAD | Imper);						/* 5th bit if overload or Imper */
+	Al3 = setBitInByte(Al3, 5, Zogr);									/* 6th bit if Zogr */
+	Al3 = setBitInByte(Al3, 6, 0);										/* 7th bit is FALSE */
+	Al3 = setBitInByte(Al3, 7, 0);										/* 8th bit is FALSE */
 	
 	/* if warning flag set */
 	if (Al1)
@@ -168,7 +168,7 @@ void Temperature(void)
 {
 	/* private variables */
 	float fCompareTemp;									
-	float fKTemp = tpm * (float)KizT;  /* multiplication tpm and KizT */
+	float fKTemp = tpm * (float)KizT;  		/* multiplication tpm and KizT */
 	
 	/* if T1 <= fKTemp <= T2 then DeTemp = 0 */
 	if 	( !(								/* if not */
@@ -360,7 +360,7 @@ void chargeModeAutomation(void)
 
 /** 
 	* @brief 	Callback function for autostop equalize mode timer.
-	* @param  xTimer: Timer handle.
+	* @param  	xTimer: Timer handle.
 	* @retval	None
  */
 void ventilationTimerCallBack(xTimerHandle xTimer)
@@ -370,7 +370,7 @@ void ventilationTimerCallBack(xTimerHandle xTimer)
 
 /** 
 	* @brief 	Callback function for change charge mode timer.
-	* @param  xTimer: Timer handle.
+	* @param  	xTimer: Timer handle.
 	* @retval	None
  */
 void changeChargeModeTimerCallBack(xTimerHandle xTimer)
@@ -385,10 +385,10 @@ void changeChargeModeTimerCallBack(xTimerHandle xTimer)
  */
 void stopVentilation(void)
 {
-	if (((Rzd == CHARGE_MODE_FLOAT) & !VentAv) 	|					/* if charge in sustain mode and autoVentilation is off OR */
-		(Rzd == CHARGE_MODE_TEST) 				|					/* charge in test mode OR */
-		stop)														/* stop */ 
-		VENTILATION_OFF;											/* then stop ventilation, else start */
+	if (((Rzd == CHARGE_MODE_FLOAT) & !VentAv) 	|	/* if charge in sustain mode and autoVentilation is off OR */
+		(Rzd == CHARGE_MODE_TEST) 				|	/* charge in test mode OR */
+		stop)										/* stop */ 
+		VENTILATION_OFF;							/* then stop ventilation, else start */
 	else 
 		VENTILATION_ON;																				
 }

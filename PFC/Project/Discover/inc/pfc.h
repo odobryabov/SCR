@@ -21,6 +21,7 @@
 #include "stm8l15x_tim1.h"
 #include "stm8l15x_tim2.h"
 #include "stm8l15x_tim3.h"
+#include "stm8l15x_tim4.h"
 #include "stm8l15x_dac.h"
 
 /* Global types --------------------------------------------------------------*/
@@ -60,9 +61,9 @@ typedef struct
   */
 typedef struct
 {
-	uint16_t FirstImpPeriod;
-	uint16_t NextImpPeriod;
-	uint16_t SpacePeriod;
+	uint8_t FirstImpPeriod;
+	uint8_t NextImpPeriod;
+	uint8_t SpacePeriod;
 	uint8_t NextImpNumber;
 } PFCTimers_TypeDef;
 
