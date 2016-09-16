@@ -37,8 +37,8 @@ extern PFC_TypeDef PFC;
 extern SCRPhase_TypeDef SCRActive;
 extern uint16_t i;
 
-//uint16_t ADC_val;
-
+static uint8_t currentSCR = 1;
+static uint16_t count;
 /** @addtogroup IT_Functions
   * @{
   */
@@ -437,23 +437,28 @@ INTERRUPT_HANDLER(ADC1_COMP_IRQHandler,18)
   if (ADC_GetFlagStatus(ADC1, ADC_FLAG_AWD))
   {
     static uint8_t flag = RESET;
-    uint16_t count = TIM2_GetCounter();
-    
-    
+      
     if (flag != SET)  
     {
-      if (count != 0) /* first time check */
-      {
-        ADC_AnalogWatchdogThresholdsConfig(ADC1, 4095, 1000);
-        flag = SET;
-        //PFCOpenGate(&PFC.SCR[0]);
+      static uint16_t i = 0;
+      count = TIM2_GetCounter();
+      ADC_AnalogWatchdogThresholdsConfig(ADC1, 4095, 1000);
+      flag = SET;
       
-        TIM1_SetAutoreload(count);
-        TIM1_SetCounter(0); /* reset for correction */
-      }   
-      else
+      //if (count != 0) /* first time check */
       {
-        TIM1_Cmd(ENABLE);
+
+
+
+        
+        TIM1_SetAutoreload(count);
+        
+        TIM3_SetAutoreload(i+=100);
+        TIM3_Cmd(ENABLE);
+      }   
+      //else
+      {
+        //TIM1_Cmd(ENABLE);
       }
       TIM2_SetCounter(0);
       TIM2_Cmd(ENABLE);
@@ -511,8 +516,14 @@ INTERRUPT_HANDLER(TIM3_UPD_OVF_TRG_BRK_IRQHandler,21)
 {
 /* In order to detect unexpected events during development,
    it is recommended to set a breakpoint on the following instruction.
-*/      
-    
+*/  
+  if (TIM3_GetFlagStatus(TIM3_FLAG_Update))
+    {
+    TIM3_Cmd(DISABLE);    
+    TIM1_SetCounter(1000); /* ??? reset for correction */
+    TIM1_Cmd(ENABLE);
+    TIM3_ClearFlag(TIM3_FLAG_Update);
+    }
 }
 /**
   * @brief Timer3 Capture/Compare Interrupt routine.
@@ -541,10 +552,21 @@ INTERRUPT_HANDLER(TIM1_UPD_OVF_TRG_COM_IRQHandler,23)
 /* In order to detect unexpected events during development,
    it is recommended to set a breakpoint on the following instruction.
 */  
-    TIM1_Cmd(DISABLE);
-    TIM1_ClearITPendingBit(TIM1_IT_Update);
-    PFCOpenGate(&PFC.SCR[0]);
-    TIM1_Cmd(ENABLE);
+    
+    uint8_t numberOfSCR = 2;
+    
+    if (TIM1_GetFlagStatus(TIM1_FLAG_Update))
+    {
+      
+      TIM1_Cmd(DISABLE);
+      TIM1_ClearFlag(TIM1_FLAG_Update);
+      currentSCR = (currentSCR + 1)%numberOfSCR;
+      if (currentSCR < numberOfSCR)
+        TIM1_Cmd(ENABLE);
+      PFCOpenGate(&PFC.SCR[currentSCR]);
+      
+    }
+    
 }
 /**
   * @brief TIM1 Capture/Compare Interrupt routine.
@@ -575,8 +597,8 @@ INTERRUPT_HANDLER(TIM4_UPD_OVF_TRG_IRQHandler,25)
    it is recommended to set a breakpoint on the following instruction.
 */
     TIM4_ClearITPendingBit(TIM4_IT_Update);
-    PFC.SCR[0].Mode++;
-    PFCOpenGate(&PFC.SCR[0]);
+    PFC.SCR[currentSCR].Mode++;
+    PFCOpenGate(&PFC.SCR[currentSCR]);
    
 }
 /**

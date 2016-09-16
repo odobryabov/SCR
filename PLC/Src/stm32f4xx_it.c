@@ -48,7 +48,10 @@ extern ADC_HandleTypeDef hadc2;
 extern PFC_TypeDef PFC;
 /* Global variables --------------------------------------------------------*/
 MBPort_InitTypeDef mbPortHMI, mbPortExtern;	
+//ADC_HandleTypeDef hadc2;
 
+//TIM_HandleTypeDef htim10;
+//TIM_HandleTypeDef htim11;
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Interruption and Exception Handlers         */ 
@@ -168,39 +171,26 @@ void UART5_IRQHandler(void)
 	}
 }
 /* USER CODE BEGIN 1 */
-/***************************************************************************************************/
-/**
-* @brief This function handles ADC global interrupt.
-*/
 void ADC_IRQHandler(void)
 {
 	/* set flag if adc value is more than high threshold and reset if less than low threshold */
 	static uint8_t flag = RESET;
-	
 	if (__HAL_ADC_GET_FLAG(&hadc2, ADC_FLAG_AWD))
 	{
-		__HAL_ADC_CLEAR_FLAG(&PFC.Timers.TIMOpenGate, ADC_FLAG_AWD);
-			
-		/* if flag is reset and watchDog occured than this is a start point */
 		if (flag != SET)
-		{
-			/* disable high threshold */
-			ADC2->HTR = 4095;										
+		{	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
+			ADC2->HTR = 4095;
 			ADC2->LTR = 1000;
 			flag = SET;
-			/* set switchPhase timer period as counter period */
-			__HAL_TIM_SET_AUTORELOAD(&PFC.Timers.TIMSemiPeriod, 1);	//__HAL_TIM_GET_COUNTER(&PFC.Timers.TIMCounter)
-			__HAL_TIM_ENABLE(&PFC.Timers.TIMSwitchPhase);
-			/* reset counter */
-			//__HAL_TIM_SET_AUTORELOAD(&PFC.Timers.TIMCounter, 1);	
-			//__HAL_TIM_ENABLE(&PFC.Timers.TIMCounter);				
+			__HAL_TIM_SET_AUTORELOAD(&PFC.Timers.TIMSemiPeriod, 1);
+			__HAL_TIM_ENABLE(&PFC.Timers.TIMSemiPeriod);
 		} else
 		{
-			/* disable low threshold */
 			ADC2->HTR = 2000;
-			ADC2->LTR = 0;											
+			ADC2->LTR = 0;
 			flag = RESET;
 		}
+		__HAL_ADC_CLEAR_FLAG(&hadc2, ADC_FLAG_AWD);
 	}
 }
 

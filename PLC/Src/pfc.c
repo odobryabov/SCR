@@ -20,6 +20,7 @@
 /* Global variables */
 PFC_TypeDef PFC;		//Global PFC handler
 
+
 /* External variables */
 
 /******************************************************************************/
@@ -35,7 +36,7 @@ void PFCInit(void)
 	/* unlock impulse periods init common structure */
 	PFC.Timers.FirstImpPeriod   = 10000;
 	PFC.Timers.NextImpPeriod    = 1000;
-	PFC.Timers.NextImpNumber 	= 0;
+	PFC.Timers.NextImpNumber 	= 3;
 	PFC.Timers.SpacePeriod 		= 500;
 	
 	/* thyristor 1 */

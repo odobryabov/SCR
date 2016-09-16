@@ -82,9 +82,9 @@ void PFCSCRInit(void)
 void PFCTimersInit(void)
 {
 	/* unlock impulse periods init common structure */
-	PFC.Timers.FirstImpPeriod       = 50;
+	PFC.Timers.FirstImpPeriod       = 100;
 	PFC.Timers.NextImpPeriod        = 5;
-	PFC.Timers.NextImpNumber 	= 5;
+	PFC.Timers.NextImpNumber 	= 0;
 	PFC.Timers.SpacePeriod 		= 5;
 	
 	/* Peripheral clock enable */
@@ -105,9 +105,9 @@ void PFCTimersInit(void)
                                TIM2_CounterMode_Up, 
                                0xFFFF);
         
-        /* phase shift */
-        TIM3_TimeBaseInit(TIM3_Prescaler_128,
-                               TIM3_CounterMode_Up, 
+        /* open delay */
+        TIM3_TimeBaseInit(TIM3_Prescaler_2,
+                               TIM3_CounterMode_Down, 
                                0xFFFF);
         /* gate */
         TIM4_TimeBaseInit(TIM4_Prescaler_128,

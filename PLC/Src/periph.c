@@ -28,13 +28,10 @@ uint32_t ADC1ConvertedValues[4];									/* 4 element array for 4 channel ADC */
 
 ADC_HandleTypeDef hadc2;
 
-extern PFC_TypeDef PFC;
-
 TIM_HandleTypeDef htim10;
 TIM_HandleTypeDef htim11;
-TIM_HandleTypeDef htim13;
-TIM_HandleTypeDef htim14;
 
+extern PFC_TypeDef PFC;
 /******************************************************************************/
 /*            					Periphery configuration         			  */ 
 /******************************************************************************/
@@ -86,7 +83,7 @@ void MX_ADC1_Init(void)
 	hadc1.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV8;
 	hadc1.Init.Resolution = ADC_RESOLUTION12b;
 	hadc1.Init.ScanConvMode = ENABLE;
-	hadc1.Init.ContinuousConvMode = ENABLE;
+	hadc1.Init.ContinuousConvMode = DISABLE;  ///change to enable
 	hadc1.Init.DiscontinuousConvMode = DISABLE;
 	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
 	hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -324,14 +321,6 @@ void MX_GPIO_Init(void)
 
 }
 
-
-
-
-/************************************************************************************************************/
-
-
-
-/* ADC2 init function */
 void MX_ADC2_Init(void)
 {
 
@@ -430,4 +419,11 @@ void MX_TIM14_Init(void)
 	__HAL_TIM_ENABLE_IT(&PFC.Timers.TIMOpenGate,TIM_IT_UPDATE);
 
 }
+
+
+/************************************************************************************************************/
+
+
+
+
 /************************ (C) COPYRIGHT *****END OF FILE****/
