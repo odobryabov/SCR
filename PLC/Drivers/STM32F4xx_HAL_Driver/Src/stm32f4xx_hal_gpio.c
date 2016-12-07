@@ -392,20 +392,20 @@ void HAL_GPIO_DeInit(GPIO_TypeDef  *GPIOx, uint32_t GPIO_Pin)
   *         This parameter can be GPIO_PIN_x where x can be (0..15).
   * @retval The input port pin value.
   */
-GPIO_PinState HAL_GPIO_ReadPin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
+FlagStatus HAL_GPIO_ReadPin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin)
 {
-  GPIO_PinState bitstatus;
+  FlagStatus bitstatus;
 
   /* Check the parameters */
   assert_param(IS_GPIO_PIN(GPIO_Pin));
 
   if((GPIOx->IDR & GPIO_Pin) != (uint32_t)GPIO_PIN_RESET)
   {
-    bitstatus = GPIO_PIN_SET;
+    bitstatus = SET;
   }
   else
   {
-    bitstatus = GPIO_PIN_RESET;
+    bitstatus = RESET;
   }
   return bitstatus;
 }

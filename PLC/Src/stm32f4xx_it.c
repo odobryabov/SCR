@@ -174,21 +174,30 @@ void UART5_IRQHandler(void)
 void ADC_IRQHandler(void)
 {
 	/* set flag if adc value is more than high threshold and reset if less than low threshold */
-	static uint8_t flag = RESET;
+	static uint8_t 	isMoreThanHTR = RESET;
+	const uint32_t 	ADC_MAX = 4095,
+					ADC_MIN = 0,
+					ADC_HTR_TEMP = 2000,
+					ADC_LTR_TEMP = 1000;
+	
 	if (__HAL_ADC_GET_FLAG(&hadc2, ADC_FLAG_AWD))
 	{
-		if (flag != SET)
-		{	HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_15);
-			ADC2->HTR = 4095;
-			ADC2->LTR = 1000;
-			flag = SET;
+		if (isMoreThanHTR != SET)
+		{	
+			ADC2->HTR = ADC_MAX;
+			ADC2->LTR = ADC_LTR_TEMP;
+			
+			isMoreThanHTR = SET;
+			
 			__HAL_TIM_SET_AUTORELOAD(&PFC.Timers.TIMSemiPeriod, 1);
 			__HAL_TIM_ENABLE(&PFC.Timers.TIMSemiPeriod);
+			
 		} else
 		{
-			ADC2->HTR = 2000;
-			ADC2->LTR = 0;
-			flag = RESET;
+			ADC2->HTR = ADC_HTR_TEMP;
+			ADC2->LTR = ADC_MIN;
+			
+			isMoreThanHTR = RESET;
 		}
 		__HAL_ADC_CLEAR_FLAG(&hadc2, ADC_FLAG_AWD);
 	}

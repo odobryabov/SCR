@@ -143,6 +143,18 @@ typedef enum
     MB_TCP                      /*!< TCP mode. */
 } eMBMode;
 
+typedef enum
+{
+    MB_ENOERR,                  /*!< no error. */
+    MB_ENOREG,                  /*!< illegal register address. */
+    MB_EINVAL,                  /*!< illegal argument. */
+    MB_EPORTERR,                /*!< porting layer error. */
+    MB_ENORES,                  /*!< insufficient resources. */
+    MB_EIO,                     /*!< I/O error. */
+    MB_EILLSTATE,               /*!< protocol stack in illegal state. */
+    MB_ETIMEDOUT                /*!< timeout error occurred. */
+} eMBErrorCode;
+
 /** 
   * @brief  Modbus Port Event structure definition
   */
@@ -179,13 +191,13 @@ typedef struct
   */
 typedef struct
 {
-		UART_HandleTypeDef UARTHandler;				/*!< UART handler */
-		TIM_HandleTypeDef TIMHandler;					/*!< TIM handler */
-		MBEvent_InitTypeDef MBEvent;          /*!< event */
-		UCHAR    ucMBAddress;									/*!< slave adress */
+		UART_HandleTypeDef UARTHandler;						/*!< UART handler */
+		TIM_HandleTypeDef TIMHandler;						/*!< TIM handler */
+		MBEvent_InitTypeDef MBEvent;          				/*!< event */
+		UCHAR    ucMBAddress;								/*!< slave adress */
 		eMBMode  eMBCurrentMode;							/*!< mode RTU, ASCII, TCP */
 		eMBStateType eMBState;
-		MBFuncOther_InitTypeDef MBFuncOther;	/*!< Other functions variables definition	*/
+		MBFuncOther_InitTypeDef MBFuncOther;				/*!< Other functions variables definition	*/
 		MBRTU_InitTypeDef MBRTU;							/*!< RTU variables definition */
 }	MBPort_InitTypeDef;
 

@@ -67,13 +67,6 @@ static UCHAR    ucMBMasterDestAddress;
 static BOOL     xMBRunInMasterMode = FALSE;
 static eMBMasterErrorEventType eMBMasterCurErrorType;
 
-static enum
-{
-    STATE_ENABLED,
-    STATE_DISABLED,
-    STATE_NOT_INITIALIZED
-} eMBState = STATE_NOT_INITIALIZED;
-
 /* Functions pointer which are initialized in eMBInit( ). Depending on the
  * mode (RTU or ASCII) the are set to the correct implementations.
  * Using for Modbus Master,Add by Armink 20130813
@@ -135,7 +128,7 @@ static xMBFunctionHandler xMasterFuncHandlers[MB_FUNC_HANDLERS_MAX] = {
 
 /* ----------------------- Start implementation -----------------------------*/
 eMBErrorCode
-eMBMasterInit( eMBMode eMode, UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity )
+eMBMasterInit( MBPort_InitTypeDef* mbPort, eMBMode eMode, UCHAR ucPort, ULONG ulBaudRate, eMBParity eParity )
 {
     eMBErrorCode    eStatus = MB_ENOERR;
 

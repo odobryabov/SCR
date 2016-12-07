@@ -62,7 +62,7 @@ PR_BEGIN_EXTERN_C
  */
 
 /* ----------------------- Defines ------------------------------------------*/
-
+#include "port.h"
 /*! \ingroup modbus
  * \brief Use the default Modbus Master TCP port (502)
  */
@@ -114,7 +114,7 @@ typedef enum
  *   is returned:
  *    - eMBErrorCode::MB_EPORTERR IF the porting layer returned an error.
  */
-eMBErrorCode    eMBMasterInit( eMBMode eMode, UCHAR ucPort,
+eMBErrorCode  eMBMasterInit( MBPort_InitTypeDef* mbPort, eMBMode eMode, UCHAR ucPort,
 		                 ULONG ulBaudRate, eMBParity eParity );
 
 /*! \ingroup modbus

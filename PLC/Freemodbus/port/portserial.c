@@ -56,7 +56,7 @@ void vMBDeWritePin(MBPort_InitTypeDef* mbPort, GPIO_PinState PinState)
 	if (mbPort->UARTHandler.Instance == USART2)
 		HAL_GPIO_WritePin(GPIOA, GPIO_PIN_1, PinState);
 	if (mbPort->UARTHandler.Instance == UART5)
-		HAL_GPIO_WritePin(GPIOB, GPIO_PIN_5, PinState);
+		HAL_GPIO_WritePin(GPIOD, GPIO_PIN_1, PinState);
 }
 
 BOOL xMBPortSerialInit( MBPort_InitTypeDef* mbPort, UCHAR ucPORT, ULONG ulBaudRate,
@@ -75,15 +75,15 @@ BOOL xMBPortSerialInit( MBPort_InitTypeDef* mbPort, UCHAR ucPORT, ULONG ulBaudRa
     __USART2_CLK_ENABLE();
   
     /**USART2 GPIO Configuration
-		PA1			------> USART2_DE
+	PA1			------> USART2_DE
     PA2     ------> USART2_TX
     PA3     ------> USART2_RX 
     */
-		GPIO_InitStruct.Pin = GPIO_PIN_1;
-		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = GPIO_PIN_1;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 		
     GPIO_InitStruct.Pin = GPIO_PIN_2|GPIO_PIN_3;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -111,15 +111,15 @@ BOOL xMBPortSerialInit( MBPort_InitTypeDef* mbPort, UCHAR ucPORT, ULONG ulBaudRa
     __UART5_CLK_ENABLE();
   
     /**UART5 GPIO Configuration
-		PB5			------> UART5_DE    
+	PD1		------> UART5_DE    
     PC12    ------> UART5_TX
     PD2     ------> UART5_RX 
     */
-		GPIO_InitStruct.Pin = GPIO_PIN_5;
-		GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-		GPIO_InitStruct.Pull = GPIO_NOPULL;
-		GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
-		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+	GPIO_InitStruct.Pin = GPIO_PIN_1;
+	GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStruct.Pull = GPIO_PULLUP;
+	GPIO_InitStruct.Speed = GPIO_SPEED_HIGH;
+	HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 		
     GPIO_InitStruct.Pin = GPIO_PIN_12;
     GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;

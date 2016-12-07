@@ -15,10 +15,13 @@
 	
 /* Includes ------------------------------------------------------------------*/
 #include "otherfunct.h"
+#include "cmsis_os.h"
+#include "plc.h"
+#include "arm_math.h"
 #include <math.h>
 
 /******************************************************************************/
-/*            							Other functions         													*/ 
+/*            				Other functions         						  */ 
 /******************************************************************************/
 
 /** 
@@ -29,18 +32,17 @@
 	* 				(or returning value of a function).
 	* @retval Changed word.
  */
-uint16_t setBitInByte(uint16_t Byte, uint16_t Position, BaseType_t Condition)
+void setBitInByte(uint16_t *Byte, uint16_t Position, FlagStatus Condition)
 {
-	if (Condition)
+	if (Condition == SET)
 	{
 			/* if TRUE then set bit as 1 */
-			Byte |=   (uint16_t)1 << Position;
+			*Byte |= (uint16_t)1 << Position;
 	} else 
 	{
 			/* if FALSE then set bit as 0 */
-			Byte &= ~((uint16_t)1 << Position);
+			*Byte &= ~((uint16_t)1 << Position);
 	}
-	return Byte;
 }
 
 /** 
@@ -109,14 +111,91 @@ uint32_t trpFilter(uint32_t input, uint32_t* temp, uint32_t window)
 	return (uint32_t)(sqSum / window);
 }
 
+
+uint16_t pfcPID (uint16_t input, uint16_t Kp, uint16_t Ki, uint16_t Kd, uint16_t delay)
+{
+	static uint16_t errorNew = 0, 
+					output = 0;
+	uint16_t errorPrev;
+	
+	errorPrev = errorNew;
+	errorNew = input - output;
+	
+	//output += /* integrating part */
+	//output += /*  */
+	output *= Kp; /* proportional part */
+	
+	osDelay(delay);
+	
+	return output;
+}
+/** 
+	* @brief  Convert 16-bit array to 8-bit array.
+	* @param  arr16: pointer to the 16-bit array.
+	* @param  arr8: pointer to the 8-bit array.
+	* @param  sizeOfArr16: 16-bit array lenght.
+	* @retval None
+ */
+void convertArray16to8(uint16_t* arr16, uint8_t* arr8, uint16_t sizeOfArr16)
+{
+	for (uint16_t i = 0; i < sizeOfArr16; i++)
+	{
+		arr8[i*2] 	= arr16[i] & 0xFF;
+		arr8[i*2+1] = arr16[i] >> 8;
+	}
+}
+
+/** 
+	* @brief  Convert 8-bit array to 16-bit array
+	* @param  arr16: pointer to the 16-bit array.
+	* @param  arr8: pointer to the 8-bit array.
+	* @param  sizeOfArr16: 16-bit array lenght.
+	* @retval None
+*/
+void convertArray8to16(uint16_t* arr16, uint8_t* arr8, uint16_t sizeOfArr16)
+{
+	for (uint16_t i = 0; i < sizeOfArr16; i++)
+		arr16[i] = arr8[i*2] | (arr8[i*2 + 1]<<8);
+}
+
+/** 
+	* @brief  Write data common function.
+	* @param  *data: pointer to the data array to be write.
+	* @param  size: array lenght.
+	* @retval None
+ */
+void writeDataToMemory(uint16_t *data, uint16_t size)
+{
+	//const uint32_t address = 0x08080000; 	  /* adress for write/read flash. flash sector 8, 0x08080000 - 0x0809FFFF, 128KB, EEPROM, NAND */
+	const uint16_t address = 0x0000; 		/* adress for write/read i2c eeprom */
+		
+	//writeFlash(address, data, size);
+	writeEEPROM(address, data, size);
+}
+	
+/** 
+	* @brief  Read data common function.
+	* @param  *data: pointer to the data array to be read.
+	* @param  size: array lenght.
+	* @retval None
+ */	
+void readDataFromMemory(uint16_t *data, uint16_t size)
+{
+	//const uint32_t address = 0x08080000; 	  /* adress for write/read flash. flash sector 8, 0x08080000 - 0x0809FFFF, 128KB, EEPROM, NAND */
+	const uint16_t address = 0x0000; 		/* adress for write/read i2c eeprom */
+	
+	//readFlash(MODBUS_VARS_ADDR, data, size);
+	readEEPROM(address, data, size);
+}
+	
 /** 
 	* @brief  Write data array in flash memory.
 	* @param  dataAddress: address for the first byte
 	* @param	*Data: pointer to the data array to be write.
-	* @param	lenght: array lenght.
+	* @param	size: array lenght.
 	* @retval None
  */
-void writeFlash(uint32_t dataAddress, uint16_t *Data, uint32_t lenght)
+void writeFlash(uint32_t dataAddress, uint16_t *data, uint16_t size)
 {
 	/* private variables */
 	uint32_t * flashArray = (uint32_t *) dataAddress; 	/* array as a pointer to the address */
@@ -132,9 +211,9 @@ void writeFlash(uint32_t dataAddress, uint16_t *Data, uint32_t lenght)
 	FLASH->CR |= FLASH_CR_PG;
 	
 	/* write array */
-	for (uint16_t i = 0; i < lenght; i++)
+	for (uint16_t i = 0; i < size; i++)
 	{
-		flashArray[i] = Data[i];
+		flashArray[i] = data[i];
 		/* waiting */
 		while (FLASH->SR & FLASH_SR_BSY);
 	}
@@ -149,12 +228,52 @@ void writeFlash(uint32_t dataAddress, uint16_t *Data, uint32_t lenght)
 /** 
 	* @brief  Read data from flash memory.
 	* @param  dataAddress: pointer to the data cell to be read.
-	* @retval Data
+	* @param  *data: pointer to the data array to be read.
+	* @param  size: array lenght.
+	* @retval None
  */
-uint16_t readFlash(uint32_t dataAddress)
+void readFlash(uint32_t dataAddress, uint16_t *data, uint16_t size)
 {
-	/* return value from pointer to pointer to address */
-	return * (uint16_t*) dataAddress;
+	for (uint16_t i = 0; i < size; i++)
+		/* get value from pointer to pointer to address */
+		/* i*sizeof(uint32_t): shift address to 4 steps (one cell is 32bit (4 bytes)) */
+		data[i] = * (uint16_t*) (dataAddress + i * sizeof(uint32_t));
+	//return * (uint16_t*) dataAddress;
 }
 
+/** 
+	* @brief  Write data to i2c eeprom.
+	* @param  *data: pointer to the data array to be write.
+	* @param  size: array lenght.
+	* @retval None
+ */
+void writeEEPROM(uint16_t dataAddress, uint16_t *data, uint16_t size)
+{
+	extern I2C_HandleTypeDef hi2c3;
+	const uint16_t deviceAddress = 0x0A;
+	uint8_t* arr8;
+	
+	convertArray16to8(data, arr8, size);
+	
+	HAL_I2C_Mem_Write(&hi2c3, deviceAddress<<1, dataAddress, size*2, arr8, size, 5);
+	
+    osDelay(10);
+}
+
+/** 
+	* @brief  Read data from i2c eeprom.
+	* @param  *data: pointer to the data array to be read.
+	* @param  size: array lenght.
+	* @retval None
+ */
+void readEEPROM(uint16_t dataAddress, uint16_t *data, uint16_t size)
+{
+	extern I2C_HandleTypeDef hi2c3;
+	const uint16_t deviceAddress = 0x0A;
+	uint8_t* arr8;
+	
+	HAL_I2C_Mem_Read(&hi2c3, deviceAddress << 1, dataAddress, size*2, arr8, size, 5);
+	
+	convertArray8to16(data, arr8, size);
+}
 /************************ (C) COPYRIGHT ***** END OF FILE ****/

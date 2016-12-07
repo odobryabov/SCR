@@ -19,14 +19,19 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
-#include "cmsis_os.h"
 
-uint16_t setBitInByte (uint16_t iByte, uint16_t iPosition, BaseType_t btCondition);
+void setBitInByte (uint16_t *Byte, uint16_t Position, FlagStatus Condition);
 FlagStatus readBitInByte(uint16_t Byte, uint16_t Position);
 uint32_t EMA(uint32_t input, float alfa, float temp);
 uint32_t trpFilter (uint32_t input, uint32_t *temp, uint32_t window);
-void writeFlash(uint32_t dataAddress, uint16_t *Data, uint32_t lenght);
-uint16_t readFlash(uint32_t dataAddress);
+void convertArray16to8(uint16_t* arr16, uint8_t* arr8, uint16_t sizeOfArr16);
+void convertArray8to16(uint16_t* arr16, uint8_t* arr8, uint16_t sizeOfArr16);
+void writeDataToMemory(uint16_t *data, uint16_t size);
+void readDataFromMemory(uint16_t *data, uint16_t size);
+void writeFlash(uint32_t dataAddress, uint16_t *data, uint16_t size);
+void readFlash(uint32_t dataAddress, uint16_t *data, uint16_t size);
+void writeEEPROM(uint16_t dataAddress, uint16_t *data, uint16_t size);
+void readEEPROM(uint16_t dataAddress, uint16_t *data, uint16_t size);
 
 #endif
 /************************ (C) COPYRIGHT *****END OF FILE****/

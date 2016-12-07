@@ -15,7 +15,7 @@
         <TargetCommonOption>
           <Device>STM32F407VGTx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F4xx_DFP.2.7.0</PackID>
+          <PackID>Keil.STM32F4xx_DFP.2.9.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IROM(0x08000000,0x100000) IRAM(0x20000000,0x20000) IRAM2(0x10000000,0x10000) CPUTYPE("Cortex-M4") FPU2 CLOCK(12000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -413,11 +413,6 @@
               <FilePath>..\Src\freertos.c</FilePath>
             </File>
             <File>
-              <FileName>charger.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Src\charger.c</FilePath>
-            </File>
-            <File>
               <FileName>otherfunct.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\otherfunct.c</FilePath>
@@ -431,6 +426,11 @@
               <FileName>pfc.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Src\pfc.c</FilePath>
+            </File>
+            <File>
+              <FileName>plc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Src\plc.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -541,6 +541,16 @@
               <FileName>stm32f4xx_hal_adc_ex.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_adc_ex.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f4xx_hal_i2c_ex.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2c_ex.c</FilePath>
             </File>
           </Files>
         </Group>

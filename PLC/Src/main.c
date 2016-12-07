@@ -57,13 +57,20 @@ extern UCHAR    ucSCoilBuf[S_COIL_NCOILS/8];
 #endif
 extern uint16_t   usSRegInBuf[S_REG_INPUT_NREGS];
 extern uint16_t   usSRegHoldBuf[S_REG_HOLDING_NREGS];
+
 uint16_t memoryTemp[REGS_NUM];   	/* 	temp array to compare old and new values in modbus holding buffer */
 /* Global variables ----------------------------------------------------------*/
 /* rtos timers variables */
 /* handles */
-xTimerHandle autostopEqModeTimer, ventilationTimer, changeChargeModeTimer, voltageChargeCalcTimer;
+xTimerHandle 					autostopEqModeTimer, 
+								ventilationTimer, 
+								changeChargeModeTimer, 
+								voltageChargeCalcTimer;
 /* IDs */
-const unsigned portBASE_TYPE autostopEqModeTimerID, changeChargeModeTimerID, ventilationTimerID, voltageChargeCalcTimerID;																
+const unsigned portBASE_TYPE 	autostopEqModeTimerID, 
+								changeChargeModeTimerID, 
+								ventilationTimerID, 
+								voltageChargeCalcTimerID;																
 /* Private variables ---------------------------------------------------------*/
 osThreadId threadHandle;
 
@@ -109,28 +116,21 @@ int main(void)
   
 	PFCInit();
 	/* USER CODE BEGIN 2 */
+	
 	/* first load from flash */
-	portENTER_CRITICAL();
+	readDataFromMemory(usSRegHoldBuf, REGS_NUM);
+	/* if flash is empty (check first word, all bits are 1 (NAND type of flash))*/
+	if (usSRegHoldBuf[0] == 0xFFFF)
 	{
-		/* if flash is empty (check first word, all bits are 1 (NAND type of flash))*/
-		if (*(__IO uint32_t*)(ADDRESS) == 0xFFFFFFFF)
-		{
-			/* then set default config */
-			setDefaultValues();
-			/* and write it to the flash */
-			writeFlash(ADDRESS, usSRegHoldBuf, REGS_NUM);
-		}
-		/* read from flash to modbus holding buffer and memoryTemp */
-		for (uint16_t i = 0; i < REGS_NUM; i++)
-		{
-			/* i*4: shift address to 4 steps (one cell is 32bit (4 bytes)) */
-			memoryTemp[i] = usSRegHoldBuf[i] = readFlash(ADDRESS + i*4);
-		}
+		/* then set default config */
+		setDefaultValues();
+		/* and write it to memory */
+		writeDataToMemory(usSRegHoldBuf, REGS_NUM);
+	}
+	/* copy from memory to memoryTemp */
+	readDataFromMemory(memoryTemp, 		REGS_NUM);
 	TimeB			= 24;				/* initialise period for autostop boost mode */
 	TimeE			= 72;				/* initialise period for autostop equalize mode */
-	}
-	portEXIT_CRITICAL();
-
 	/* USER CODE END 2 */
 
 	/* USER CODE BEGIN RTOS_MUTEX */
@@ -176,7 +176,7 @@ int main(void)
 	osThreadDef(fastThread, StartFastThread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	threadHandle = osThreadCreate(osThread(fastThread), NULL);
 																							
-	/* definition and creation of ModbusHMITask */
+	/* definition and creation of modbusHMITask */
 	osThreadDef(modbusHMIThread, StartModbusHMIThread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	threadHandle = osThreadCreate(osThread(modbusHMIThread), NULL);
 																							

@@ -15,7 +15,6 @@
 	
 /* Includes ------------------------------------------------------------------*/
 #include "pfc.h"
-#include <math.h>
 
 /* Global variables */
 PFC_TypeDef PFC;		//Global PFC handler
@@ -83,8 +82,6 @@ void PFCInit(void)
 		GPIO_temp.Speed = GPIO_SPEED_HIGH;
 		HAL_GPIO_Init(PFC.SCR[i].GPIOx, &GPIO_temp);
 	}
-		
-		
 }
 
 /** 

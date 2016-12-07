@@ -14,7 +14,6 @@
   */
 #include "stm32f4xx_hal.h"
 #include "threads.h"
-#include "charger.h"
 #include "otherfunct.h"
 #include <math.h>
 
@@ -43,22 +42,29 @@ void StartCalcThread(void const * argument)
 	/* External variables */
 	extern uint32_t fltrIsensorCom, fltrTsensor, fltrUsensor, fltrIsensorAB;
 	extern uint32_t ADC1ConvertedValues[4];
+	
 	/* Private variables */
+	/* ADC filter ratio (3 is normal) */
+	const uint16_t 	windowISensorCom 	= 3,
+					windowTSensor 		= 3,
+					windowUSensor 		= 3,
+					windowISensorAB 	= 3;
+	
 	/* temp arrays for filter buffering */
-	uint32_t 	tempIsensorCom	[I_SENSOR_COM_WINDOW 	+ 1], 
-				tempTsensor		[T_SENSOR_WINDOW 		+ 1], 
-				tempUsensor		[U_SENSOR_WINDOW 		+ 1], 
-				tempIsensorAB	[I_SENSOR_AB_WINDOW 	+ 1];
+	uint32_t 	tempIsensorCom	[windowISensorCom 	+ 1], 
+				tempTsensor		[windowTSensor 		+ 1], 
+				tempUsensor		[windowUSensor 		+ 1], 
+				tempIsensorAB	[windowISensorAB 	+ 1];
 	
 	HAL_ADC_Start(&hadc2);
 	/* Infinite loop */
 	for (;;)
 	{
 		/* filtering ADC */
-		fltrIsensorCom 	= trpFilter(ADC1ConvertedValues[0], tempIsensorCom, I_SENSOR_COM_WINDOW);
-		fltrTsensor 	= trpFilter(ADC1ConvertedValues[1], tempTsensor, 	T_SENSOR_WINDOW);
-		fltrUsensor 	= trpFilter(ADC1ConvertedValues[2], tempUsensor, 	U_SENSOR_WINDOW);
-		fltrIsensorAB 	= trpFilter(ADC1ConvertedValues[3], tempIsensorAB, 	I_SENSOR_AB_WINDOW);	
+		fltrIsensorCom 	= trpFilter(ADC1ConvertedValues[0], tempIsensorCom, windowISensorCom);
+		fltrTsensor 	= trpFilter(ADC1ConvertedValues[1], tempTsensor, 	windowTSensor);
+		fltrUsensor 	= trpFilter(ADC1ConvertedValues[2], tempUsensor, 	windowUSensor);
+		fltrIsensorAB 	= trpFilter(ADC1ConvertedValues[3], tempIsensorAB, 	windowISensorAB);	
 		
 		/* calculation functions */
 		temperatureAdd ();
@@ -159,7 +165,7 @@ void StartModbusExternThread(void const * argument)
 	mbPortExtern.TIMHandler.Instance = TIM3;
 	
 	/* specify modbus type, slave address, baud rate, parity */
-	eStatus = eMBInit(&mbPortExtern, MB_RTU, 0x0A, 0, 115200, MB_PAR_NONE);
+	eStatus = eMBInit(&mbPortExtern, MB_RTU, 0x10, 0, 9600, MB_PAR_NONE);
 	
 	/* Enable modbus */
 	eStatus = eMBEnable(&mbPortExtern);
@@ -197,7 +203,7 @@ void StartChangeParamCheckThread(void const * argument)
 				portENTER_CRITICAL();
 				{
 					/* then rewrite flash from modbus holding buffer */
-					writeFlash(ADDRESS, usSRegHoldBuf, REGS_NUM);
+					writeDataToMemory(usSRegHoldBuf, REGS_NUM);
 				}
 				portEXIT_CRITICAL();
 			}

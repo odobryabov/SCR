@@ -14,14 +14,49 @@
   */ 
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef DEFINES_H
-#define DEFINES_H
+#ifndef PLC_H
+#define PLC_H
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 #include "cmsis_os.h"
 #include "mb.h"
 #include "user_mb_app.h"
+
+/* debug macros ----------------------------------------------------------*/
+#define DEBUG_MODE 0
+
+#if DEBUG_MODE == 0
+	#define debugCode( code_fragment )
+#elif DEBUG_MODE > 0
+	//printf("4\n");
+	#define debugCode( code_fragment) { code_fragment }
+#endif
+
+#if DEBUG_MODE != 0
+	#include <stdio.h>
+
+	#define ITM_port8(n) 	(*((volatile unsigned char  *)(0xE0000000+4*n)))
+	#define ITM_port16(n) 	(*((volatile unsigned short *)(0xE0000000+4*n)))
+	#define ITM_port32(n) 	(*((volatile unsigned long  *)(0xE0000000+4*n)))
+
+	#define DEMCR 			(*((volatile unsigned long  *)(0xE000EDFC)))
+	#define TRCENA 			0x01000000
+
+	struct __FILE { int handle; };
+	FILE __stdout;
+	FILE __stdin;
+
+	int fputc(int ch, FILE *f)
+	{
+		if (DEMCR & TRCENA)
+		{
+			while (ITM_port32(0) == 0);
+			ITM_port8(0) = ch;
+		}
+		return (ch);
+	}
+#endif
 
 /* Global types ------------------------------------------------------------*/
 /**
@@ -38,14 +73,7 @@ typedef enum
 
 /* Private defines ------------------------------------------------------------*/
 /* flash read-write defines */
-#define ADDRESS 					0x08080000		/* adress for write/read flash. flash sector 8, 0x08080000 - 0x0809FFFF, 128KB, EEPROM, NAND */
 #define REGS_NUM					21				/* buffer size for flash rewriting. First registers of modbus holding buffer */
-
-/* ADC filter ratio (3 is normal) */
-#define I_SENSOR_COM_WINDOW			3				/* 3 is normal */							
-#define T_SENSOR_WINDOW				3				/* 3 is normal */
-#define U_SENSOR_WINDOW				3				/* 3 is normal */
-#define I_SENSOR_AB_WINDOW			3				/* 3 is normal */
 
 /* ADC filtered variables defines */
 #define I_SENSOR_COM				fltrIsensorCom 	/* ADC1ConvertedValues[0]	PB0	Iin	*/

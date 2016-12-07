@@ -24,6 +24,7 @@
 void SystemClock_Config(void);
 void MX_GPIO_Init(void);
 void MX_DMA_Init(void);
+void MX_I2C3_Init(void);
 void MX_TIM1_Init(void);
 void MX_TIM8_Init(void);
 void MX_ADC1_Init(void);
