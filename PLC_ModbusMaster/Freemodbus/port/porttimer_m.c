@@ -68,7 +68,7 @@ void vMBMasterPortTimersT35Enable(void)
 
 void vMBMasterPortTimersConvertDelayEnable(void)
 {
-    TickType_t timer_tick = MB_MASTER_DELAY_MS_CONVERT * portTICK_PERIOD_MS;
+    TickType_t timer_tick = MB_MASTER_DELAY_MS_CONVERT / portTICK_RATE_MS;
 
     /* Set current timer mode, don't change it.*/
     vMBMasterSetCurTimerMode(MB_TMODE_CONVERT_DELAY);
@@ -81,7 +81,7 @@ void vMBMasterPortTimersConvertDelayEnable(void)
 
 void vMBMasterPortTimersRespondTimeoutEnable()
 {
-    TickType_t timer_tick = MB_MASTER_TIMEOUT_MS_RESPOND * portTICK_PERIOD_MS;
+    TickType_t timer_tick = MB_MASTER_TIMEOUT_MS_RESPOND / portTICK_RATE_MS;
 
     /* Set current timer mode, don't change it.*/
     vMBMasterSetCurTimerMode(MB_TMODE_RESPOND_TIMEOUT);

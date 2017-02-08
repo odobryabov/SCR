@@ -137,26 +137,26 @@ void StartModbusHMIThread(void const * argument)
 	/* External variables */
 
 	
-//	/* Private variables */
-//	eMBErrorCode    	eStatus = MB_ENOERR;		/* Init and enable modbus error code */
-//	
-//	/* specify modbus type, slave address, baud rate, parity */
-//	eStatus = eMBInit(MB_RTU, 0x10, 0, 9600, MB_PAR_NONE);
-//	
-//	/* Enable modbus */
-//	eStatus = eMBEnable();
-//	
-//	/* if error */
-//	if ( eStatus != MB_ENOERR ) 
-//	{
-//		/* modbus alarm */
-//	}
+	/* Private variables */
+	eMBErrorCode    	eStatus = MB_ENOERR;		/* Init and enable modbus error code */
+	
+	/* specify modbus type, slave address, baud rate, parity */
+	eStatus = eMBInit(MB_RTU, 0x10, 0, 9600, MB_PAR_NONE);
+	
+	/* Enable modbus */
+	eStatus = eMBEnable();
+	
+	/* if error */
+	if ( eStatus != MB_ENOERR ) 
+	{
+		/* modbus alarm */
+	}
 	
 	/* Infinite loop */
 	for(;;)
 	{
 		/* start modbus polling */
-		//(void) eMBPoll();
+		(void) eMBPoll();
 		osDelay(1);
 	}
 }
@@ -200,27 +200,27 @@ void StartModbusExternThread(void const * argument)
 void StartChangeParamCheckThread(void const * argument)
 {
 	/* External variables */
-	extern uint16_t memoryTemp[REGS_NUM];   	/* temp array to compare old and new values in modbus holding buffer */
+//	extern uint16_t memoryTemp[REGS_NUM];   	/* temp array to compare old and new values in modbus holding buffer */
 	
 	/* Infinite loop */
 	for(;;)
 	{
 		/* compare every register in memoryTemp and modbus holding buffer */
-		for (uint16_t i = 0; i < REGS_NUM - 1; i++)
-		{
-			/* if not equals */
-			if (memoryTemp[i] != usSRegHoldBuf[i])
-			{
-				portENTER_CRITICAL();
-				{
-					/* then rewrite flash from modbus holding buffer */
-					writeDataToMemory(usSRegHoldBuf, REGS_NUM);
-				}
-				portEXIT_CRITICAL();
-			}
-			/* write to memoryTemp from modbus holding buffer after check */
-			memoryTemp[i] = usSRegHoldBuf[i];
-		}
+//		for (uint16_t i = 0; i < REGS_NUM - 1; i++)
+//		{
+//			/* if not equals */
+//			if (memoryTemp[i] != usSRegHoldBuf[i])
+//			{
+//				portENTER_CRITICAL();
+//				{
+//					/* then rewrite flash from modbus holding buffer */
+//					writeDataToMemory(usSRegHoldBuf, REGS_NUM);
+//				}
+//				portEXIT_CRITICAL();
+//			}
+//			/* write to memoryTemp from modbus holding buffer after check */
+//			memoryTemp[i] = usSRegHoldBuf[i];
+//		}
 		
 		osDelay(100);
 	}
@@ -251,11 +251,10 @@ void StartModbusMaster(void const * argument)
 		
 		eMBMasterReqReadHoldingRegister(1, 1, 1, 500);
 
-		//		if (usMRegHoldBuf[1 - 1][1] == 1111)
+//		if (usMRegHoldBuf[1 - 1][1] == 1111)
 //			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
 //		else 
 //			HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_RESET);
-		
 
 		(void)eMBMasterPoll();
 		osDelay(100);

@@ -27,52 +27,62 @@
 
 #if MB_MASTER_RTU_ENABLED > 0 || MB_MASTER_ASCII_ENABLED > 0
 /* ----------------------- Defines ------------------------------------------*/
+#define MBMasterEventGetBlockTime portMAX_DELAY
+//#define MBMasterEventGetBlockTime (100/portTICK_RATE_MS)
+#define xModbusMasterEvent_QUEUE_SIZE 1
 /* ----------------------- Variables ----------------------------------------*/
-static xSemaphoreHandle xMasterRunRes;
-static xQueueHandle xQueueHdl;
-static eMBMasterEventType mEvent;
-static BaseType_t xHigherPriorityTaskWoken;
+static SemaphoreHandle_t xMasterRunRes;
+static EventGroupHandle_t xModbusMasterOsEvent;
+static uint8_t semerrcount = 0;
 /* ----------------------- Start implementation -----------------------------*/
 BOOL
 xMBMasterPortEventInit( void )
 {
-	
-    if( 0 != ( xQueueHdl = xQueueCreate( 1, sizeof( eMBMasterEventType ) ) ) )
-    {
-        return TRUE;
-    }
-		
-    return FALSE;
+	xModbusMasterOsEvent = xEventGroupCreate();
+    return TRUE;
 }
 
 BOOL
 xMBMasterPortEventPost( eMBMasterEventType eEvent )
 {
-	BOOL            bStatus = TRUE;
-	
-    if( bMBPortIsWithinException(  ) )
-    {
-        ( void )xQueueSendFromISR( xQueueHdl, ( const void * )&eEvent, pdFALSE );
-    }
-    else
-    {
-        ( void )xQueueSend( xQueueHdl, ( const void * )&eEvent, 200 * portTICK_PERIOD_MS );
-    }
-
-    return bStatus;
+	xEventGroupSetBits( xModbusMasterOsEvent,   /* The event group being updated. */
+                        eEvent );				/* The bits being set. */
+    return TRUE;
 }
 
 BOOL
 xMBMasterPortEventGet( eMBMasterEventType * eEvent )
 {
-    BOOL            xEventHappened = FALSE;
+	/* waiting forever OS event */
+    EventBits_t uxModbusMasterEventBits;
+    /* waiting forever OS event */
+    uxModbusMasterEventBits = xEventGroupWaitBits(
+                xModbusMasterOsEvent,   /* The event group being tested. */
+                EV_MASTER_READY | EV_MASTER_FRAME_RECEIVED | EV_MASTER_EXECUTE |
+                EV_MASTER_FRAME_SENT | EV_MASTER_ERROR_PROCESS, /* The bits within the event group to wait for. */
+                pdTRUE,        /* BIT_0 and BIT_4 should be cleared before returning. */
+                pdFALSE,       /* Don't wait for both bits, either bit will do. */
+                MBMasterEventGetBlockTime );/* Wait forever for either bit to be set. */
 
-    if( xQueueReceive( xQueueHdl, eEvent,  50 * portTICK_PERIOD_MS  ) == pdTRUE )
+    switch (uxModbusMasterEventBits)
     {
-        xEventHappened = TRUE;
-    } else
-	HAL_GPIO_WritePin(GPIOD, GPIO_PIN_14, GPIO_PIN_SET);
-    return xEventHappened;
+    case EV_MASTER_READY:
+        *eEvent = EV_MASTER_READY;
+        break;
+    case EV_MASTER_FRAME_RECEIVED:
+        *eEvent = EV_MASTER_FRAME_RECEIVED;
+        break;
+    case EV_MASTER_EXECUTE:
+        *eEvent = EV_MASTER_EXECUTE;
+        break;
+    case EV_MASTER_FRAME_SENT:
+        *eEvent = EV_MASTER_FRAME_SENT;
+        break;
+    case EV_MASTER_ERROR_PROCESS:
+        *eEvent = EV_MASTER_ERROR_PROCESS;
+        break;
+    }
+    return TRUE;
 }
 /**
  * This function is initialize the OS resource for modbus master.
@@ -81,7 +91,24 @@ xMBMasterPortEventGet( eMBMasterEventType * eEvent )
  */
 void vMBMasterOsResInit( void )
 {
-	xMasterRunRes = xSemaphoreCreateBinary();
+	/* Attempt to create a semaphore. */
+    xMasterRunRes = xSemaphoreCreateBinary();
+
+    if( xMasterRunRes == NULL )
+    {
+        /* There was insufficient OpenRTOS heap available for the semaphore to
+        be created successfully. */
+    }
+    else
+    {
+        if( xSemaphoreGive(xMasterRunRes)!= pdTRUE )
+		{
+		   semerrcount++;
+		}
+		/* The semaphore can now be used. Its handle is stored in the xSemahore
+        variable.  Calling xSemaphoreTake() on the semaphore here will fail until
+        the semaphore has first been given. */
+    }
 }
 
 /**
@@ -95,7 +122,7 @@ void vMBMasterOsResInit( void )
 BOOL xMBMasterRunResTake( LONG lTimeOut )
 {
     /*If waiting time is -1 .It will wait forever */
-    return xSemaphoreTake( xMasterRunRes, lTimeOut * portTICK_PERIOD_MS) ? FALSE : TRUE ;
+    return xSemaphoreTake(xMasterRunRes,lTimeOut)? TRUE : FALSE; 
 }
 
 /**
@@ -106,7 +133,10 @@ BOOL xMBMasterRunResTake( LONG lTimeOut )
 void vMBMasterRunResRelease( void )
 {
     /* release resource */
-	xSemaphoreGive(xMasterRunRes);
+    if(xSemaphoreGive(xMasterRunRes) != pdTRUE)
+	{
+		semerrcount++;
+	}
 }
 
 /**
@@ -125,16 +155,8 @@ void vMBMasterErrorCBRespondTimeout(UCHAR ucDestAddress, const UCHAR* pucPDUData
      * @note This code is use OS's event mechanism for modbus master protocol stack.
      * If you don't use OS, you can change it.
      */
-	mEvent = EV_MASTER_ERROR_RESPOND_TIMEOUT;
-			
-	if( bMBPortIsWithinException(  ) )
-    {
-        ( void )xQueueSendFromISR( xQueueHdl, ( const void * )&mEvent, pdFALSE );
-    }
-    else
-    {
-        ( void )xQueueSend( xQueueHdl, ( const void * )&mEvent, 200 * portTICK_PERIOD_MS );
-    }
+	xEventGroupSetBits( xModbusMasterOsEvent,    			/* The event group being updated. */
+                        EV_MASTER_ERROR_RESPOND_TIMEOUT );	/* The bits being set. */
     /* You can add your code under here. */
 
 }
@@ -155,16 +177,8 @@ void vMBMasterErrorCBReceiveData(UCHAR ucDestAddress, const UCHAR* pucPDUData,
      * @note This code is use OS's event mechanism for modbus master protocol stack.
      * If you don't use OS, you can change it.
      */
-	mEvent = EV_MASTER_ERROR_RECEIVE_DATA;
-			
-	if( bMBPortIsWithinException(  ) )
-    {
-        ( void )xQueueSendFromISR( xQueueHdl, ( const void * )&mEvent, pdFALSE );
-    }
-    else
-    {
-        ( void )xQueueSend( xQueueHdl, ( const void * )&mEvent, 200 * portTICK_PERIOD_MS );
-    }
+	xEventGroupSetBits( xModbusMasterOsEvent,    		/* The event group being updated. */
+                        EV_MASTER_ERROR_RECEIVE_DATA );	/* The bits being set. */
     /* You can add your code under here. */
 
 }
@@ -185,15 +199,8 @@ void vMBMasterErrorCBExecuteFunction(UCHAR ucDestAddress, const UCHAR* pucPDUDat
      * @note This code is use OS's event mechanism for modbus master protocol stack.
      * If you don't use OS, you can change it.
      */
-	mEvent = EV_MASTER_ERROR_EXECUTE_FUNCTION;
-	if( bMBPortIsWithinException(  ) )
-    {
-        ( void )xQueueSendFromISR( xQueueHdl, ( const void * )&mEvent, pdFALSE );
-    }
-    else
-    {
-        ( void )xQueueSend( xQueueHdl, ( const void * )&mEvent, 200 * portTICK_PERIOD_MS );
-    }
+	xEventGroupSetBits( xModbusMasterOsEvent,    			/* The event group being updated. */
+                        EV_MASTER_ERROR_EXECUTE_FUNCTION );	/* The bits being set. */
     /* You can add your code under here. */
 
 }
@@ -209,15 +216,8 @@ void vMBMasterCBRequestSucess( void ) {
      * @note This code is use OS's event mechanism for modbus master protocol stack.
      * If you don't use OS, you can change it.
      */
-	mEvent = EV_MASTER_PROCESS_SUCESS;
-	if( bMBPortIsWithinException(  ) )
-    {
-        ( void )xQueueSendFromISR( xQueueHdl, ( const void * )&mEvent, pdFALSE );
-    }
-    else
-    {
-        ( void )xQueueSend( xQueueHdl, ( const void * )&mEvent, 200 * portTICK_PERIOD_MS );
-    }
+	xEventGroupSetBits( xModbusMasterOsEvent,    	/* The event group being updated. */
+                        EV_MASTER_PROCESS_SUCESS );	/* The bits being set. */
     /* You can add your code under here. */
 
 }
@@ -232,32 +232,41 @@ void vMBMasterCBRequestSucess( void ) {
  * @return request error code
  */
 eMBMasterReqErrCode eMBMasterWaitRequestFinish( void ) {
-
-    uint32_t recvedEvent;
-	eMBMasterReqErrCode  reqErrCode = MB_MRE_NO_ERR;
 	
-    /* waiting for OS event */
-    if( xQueueReceive( xQueueHdl, &recvedEvent,  50 * portTICK_PERIOD_MS ) == pdTRUE )
+	eMBMasterReqErrCode    eErrStatus = MB_MRE_NO_ERR;
+    EventBits_t uxModbusMasterEventBits;
+    
+	/* Wait a maximum of 100ms for either bit 0 or bit 4 to be set within
+    the event group.  Clear the bits before exiting. */
+    uxModbusMasterEventBits = xEventGroupWaitBits(
+                xModbusMasterOsEvent,   /* The event group being tested. */
+                EV_MASTER_PROCESS_SUCESS | EV_MASTER_ERROR_RESPOND_TIMEOUT
+                | EV_MASTER_ERROR_RECEIVE_DATA | EV_MASTER_ERROR_EXECUTE_FUNCTION, /* The bits within the event group to wait for. */
+                pdTRUE,        /* BIT_0 and BIT_4 should be cleared before returning. */
+                pdFALSE,       /* Don't wait for both bits, either bit will do. */
+                MBMasterEventGetBlockTime );/* Wait forever for either bit to be set. */
+
+	switch (uxModbusMasterEventBits)
     {
-		switch (recvedEvent)
-		{
-		case EV_MASTER_PROCESS_SUCESS:
-			break;
-		
-		case EV_MASTER_ERROR_RESPOND_TIMEOUT:
-			reqErrCode = MB_MRE_TIMEDOUT;
-			break;
-		
-		case EV_MASTER_ERROR_RECEIVE_DATA:
-			reqErrCode = MB_MRE_REV_DATA;
-			break;
-		
-		case EV_MASTER_ERROR_EXECUTE_FUNCTION:
-			reqErrCode = MB_MRE_EXE_FUN;
-			break;
-		}
-    }  
-	return reqErrCode;
+    case EV_MASTER_PROCESS_SUCESS:
+        break;
+    case EV_MASTER_ERROR_RESPOND_TIMEOUT:
+    {
+        eErrStatus = MB_MRE_TIMEDOUT;
+        break;
+    }
+    case EV_MASTER_ERROR_RECEIVE_DATA:
+    {
+        eErrStatus = MB_MRE_REV_DATA;
+        break;
+    }
+    case EV_MASTER_ERROR_EXECUTE_FUNCTION:
+    {
+        eErrStatus = MB_MRE_EXE_FUN;
+        break;
+    }
+    }
+    return eErrStatus;
 }
 
 #endif

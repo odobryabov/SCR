@@ -82,7 +82,7 @@ void MX_ADC1_Init(void)
 	hadc1.Init.ClockPrescaler = ADC_CLOCKPRESCALER_PCLK_DIV8;
 	hadc1.Init.Resolution = ADC_RESOLUTION12b;
 	hadc1.Init.ScanConvMode = ENABLE;
-	hadc1.Init.ContinuousConvMode = DISABLE;  ///change to enable
+	hadc1.Init.ContinuousConvMode = ENABLE;  ///change to enable
 	hadc1.Init.DiscontinuousConvMode = DISABLE;
 	hadc1.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
 	hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
@@ -234,7 +234,7 @@ void MX_GPIO_Init(void)
 	__GPIOE_CLK_ENABLE();
 	__GPIOH_CLK_ENABLE();
 
-/* INPUTS */
+	/* INPUTS */
 	/*Configure GPIO pin : PA9 */
 	GPIO_InitStruct.Pin = GPIO_PIN_9;
 	GPIO_InitStruct.Mode = GPIO_MODE_INPUT;

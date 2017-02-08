@@ -114,7 +114,7 @@ int main(void)
 //	MX_TIM13_Init();
 //	MX_TIM14_Init();
   
-	//PFCInit();
+//	PFCInit();
 	/* USER CODE BEGIN 2 */
 	
 //	/* first load from flash */
@@ -178,16 +178,16 @@ int main(void)
 	threadHandle = osThreadCreate(osThread(fastThread), NULL);
 																							
 	/* definition and creation of modbusHMITask */
-	osThreadDef(modbusHMIThread, StartModbusHMIThread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	threadHandle = osThreadCreate(osThread(modbusHMIThread), NULL);
+//	osThreadDef(modbusHMIThread, StartModbusHMIThread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+//	threadHandle = osThreadCreate(osThread(modbusHMIThread), NULL);
 																							
 	/* definition and creation of modbusExternTask */
 	osThreadDef(modbusExternThread, StartModbusExternThread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	threadHandle = osThreadCreate(osThread(modbusExternThread), NULL);
 																																												
 	/* definition and creation of changeParamCheckTask */
-	//osThreadDef(changeParamCheckThread, StartChangeParamCheckThread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	//threadHandle = osThreadCreate(osThread(changeParamCheckThread), NULL);
+	osThreadDef(changeParamCheckThread, StartChangeParamCheckThread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	threadHandle = osThreadCreate(osThread(changeParamCheckThread), NULL);
 	
 	/* definition and creation of changeParamCheckTask */
 	osThreadDef(modbusMaster, StartModbusMaster, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
